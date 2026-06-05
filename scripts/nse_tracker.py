@@ -34,43 +34,60 @@ BASELINE = {
     "BARC.L": 278.00, "HSBA.L": 782.00,
 }
 
-# ── Fixed NSE Patterns (9) ──────────────────────────────────────────────────
-NSE_PATTERNS = [
-    {"name": "Defense Rerate",    "tickers": ["HAL.NS","BEL.NS"],                               "signal": "positive"},
-    {"name": "Commodity/MCX Vol", "tickers": ["MCX.NS"],                                         "signal": "positive"},
-    {"name": "IDEA Turnaround",   "tickers": ["IDEA.NS"],                                        "signal": "speculative"},
-    {"name": "Pharma Safe-Haven", "tickers": ["SUNPHARMA.NS","CIPLA.NS","DRREDDY.NS"],          "signal": "positive"},
-    {"name": "FMCG Safe-Haven",   "tickers": ["HINDUNILVR.NS","ITC.NS"],                        "signal": "positive"},
-    {"name": "Paytm Recovery",    "tickers": ["PAYTM.NS"],                                       "signal": "positive"},
-    {"name": "OMC Value Trap",    "tickers": ["BPCL.NS","IOC.NS","HINDPETRO.NS"],               "signal": "negative"},
-    {"name": "PSU Bank Reversal", "tickers": ["SBIN.NS","BANKBARODA.NS"],                       "signal": "negative"},
-    {"name": "IT Earnings Trap",  "tickers": ["HCLTECH.NS","INFY.NS","TCS.NS","TECHM.NS"],     "signal": "negative"},
-]
-
-# ── Global sector map for adaptive stocks ───────────────────────────────────
+# ── Global sector map — drives both NSE patterns and global stocks ───────────
+# signal: how news about this sector typically moves NSE stocks
+#   positive   = good news → stocks go up (buy signal)
+#   negative   = bad news  → stocks fall  (sell/avoid)
+#   speculative = high volatility, could go either way
 GLOBAL_SECTORS = [
-    {"keywords": ["defense","defence","military","war","nato","missile","army","ceasefire","pakistan","china","border"],
-     "name": "Defense", "tickers": ["HAL.NS","BEL.NS","LMT","RTX","AIR.PA"]},
-    {"keywords": ["oil","crude","opec","petroleum","bpcl","ongc","exxon","shell","energy","refinery"],
-     "name": "Oil & Energy", "tickers": ["BPCL.NS","ONGC.NS","XOM","CVX","SHEL.L","TTE.PA"]},
-    {"keywords": ["pharma","drug","fda","health","medicine","cipla","pfizer","novartis","pandemic","biotech"],
-     "name": "Pharma", "tickers": ["SUNPHARMA.NS","CIPLA.NS","PFE","JNJ","NOVN.SW","ROG.SW"]},
-    {"keywords": ["ai","artificial intelligence","chip","semiconductor","nvidia","microsoft","cloud","llm","automation"],
-     "name": "Tech / AI", "tickers": ["TCS.NS","INFY.NS","NVDA","MSFT","GOOGL","ASML.AS","SAP.DE"]},
-    {"keywords": ["bank","rate","fed","ecb","rbi","repo","inflation","credit","interest","npa","liquidity"],
-     "name": "Banking & Rates", "tickers": ["HDFCBANK.NS","SBIN.NS","JPM","BAC","BARC.L","HSBA.L"]},
-    {"keywords": ["ev","electric","tesla","auto","automobile","maruti","car","battery","vehicle"],
-     "name": "Auto / EV", "tickers": ["MARUTI.NS","TSLA","SIE.DE"]},
-    {"keywords": ["gold","silver","safe haven","risk off","vix","dollar","yen","swiss franc"],
-     "name": "Safe Haven / Gold", "tickers": ["GC=F","MCX.NS","TITAN.NS"]},
-    {"keywords": ["trade","tariff","export","supply chain","wto","dollar","forex","rupee","euro"],
-     "name": "Trade / Macro", "tickers": ["RELIANCE.NS","AMZN","MSFT"]},
-    {"keywords": ["telecom","5g","airtel","jio","vodafone","spectrum","bharti","broadband"],
-     "name": "Telecom", "tickers": ["BHARTIARTL.NS","IDEA.NS"]},
-    {"keywords": ["power","renewable","solar","wind","green energy","tatapower","climate","cop","electricity"],
-     "name": "Power / Renewables", "tickers": ["TATAPOWER.NS","XOM","TTE.PA"]},
-    {"keywords": ["luxury","consumer","fmcg","retail","amazon","meta","spending","hul","itc"],
-     "name": "Consumer / FMCG", "tickers": ["HINDUNILVR.NS","ITC.NS","AMZN","META","MC.PA"]},
+    {"name": "Defense / Geopolitics",
+     "keywords": ["defense","defence","military","war","nato","missile","army","ceasefire","pakistan","china","border","conflict"],
+     "nse": ["HAL.NS","BEL.NS"], "global": ["LMT","RTX","AIR.PA"],
+     "signal": "positive"},
+    {"name": "Oil & Energy",
+     "keywords": ["oil","crude","opec","petroleum","bpcl","ongc","exxon","shell","energy","refinery","petrol","diesel"],
+     "nse": ["BPCL.NS","IOC.NS","HINDPETRO.NS","ONGC.NS"], "global": ["XOM","CVX","SHEL.L","TTE.PA"],
+     "signal": "negative"},
+    {"name": "Pharma / Healthcare",
+     "keywords": ["pharma","drug","fda","health","medicine","cipla","pfizer","novartis","pandemic","biotech","hospital"],
+     "nse": ["SUNPHARMA.NS","CIPLA.NS","DRREDDY.NS"], "global": ["PFE","JNJ","NOVN.SW","ROG.SW"],
+     "signal": "positive"},
+    {"name": "Tech / AI",
+     "keywords": ["ai","artificial intelligence","chip","semiconductor","nvidia","microsoft","cloud","llm","automation","software","it sector"],
+     "nse": ["TCS.NS","INFY.NS","WIPRO.NS","HCLTECH.NS","TECHM.NS"], "global": ["NVDA","MSFT","GOOGL","ASML.AS","SAP.DE"],
+     "signal": "positive"},
+    {"name": "Banking & Rates",
+     "keywords": ["bank","rate","fed","ecb","rbi","repo","inflation","credit","interest","npa","liquidity","monetary"],
+     "nse": ["HDFCBANK.NS","SBIN.NS","ICICIBANK.NS","AXISBANK.NS","KOTAKBANK.NS","BANKBARODA.NS"], "global": ["JPM","BAC","GS","BARC.L","HSBA.L"],
+     "signal": "positive"},
+    {"name": "Auto / EV",
+     "keywords": ["ev","electric vehicle","tesla","auto","automobile","maruti","car","suv","battery","vehicle sales"],
+     "nse": ["MARUTI.NS","TATAPOWER.NS"], "global": ["TSLA","SIE.DE"],
+     "signal": "positive"},
+    {"name": "Safe Haven / Gold",
+     "keywords": ["gold","silver","safe haven","risk off","vix","dollar","yen","swiss franc","recession","fear"],
+     "nse": ["MCX.NS","TITAN.NS"], "global": ["GC=F"],
+     "signal": "positive"},
+    {"name": "Trade / Macro",
+     "keywords": ["trade","tariff","export","import","supply chain","wto","dollar","forex","rupee","euro","gdp","growth"],
+     "nse": ["RELIANCE.NS","MARUTI.NS"], "global": ["AMZN","MSFT"],
+     "signal": "positive"},
+    {"name": "Telecom",
+     "keywords": ["telecom","5g","airtel","jio","vodafone","spectrum","bharti","broadband","vi"],
+     "nse": ["BHARTIARTL.NS","IDEA.NS"], "global": [],
+     "signal": "speculative"},
+    {"name": "Power / Renewables",
+     "keywords": ["power","renewable","solar","wind","green energy","tatapower","climate","cop","electricity","grid"],
+     "nse": ["TATAPOWER.NS","ONGC.NS"], "global": ["XOM","TTE.PA"],
+     "signal": "positive"},
+    {"name": "Consumer / FMCG",
+     "keywords": ["fmcg","consumer","hul","hindustan unilever","itc","rural","monsoon","retail","spending","kirana"],
+     "nse": ["HINDUNILVR.NS","ITC.NS","TITAN.NS"], "global": ["AMZN","META","MC.PA"],
+     "signal": "positive"},
+    {"name": "PSU / Government Spend",
+     "keywords": ["psu","government","public sector","budget","capex","infra","infrastructure","railway","defence spend"],
+     "nse": ["HAL.NS","BEL.NS","SBIN.NS","BANKBARODA.NS","ONGC.NS"], "global": [],
+     "signal": "positive"},
 ]
 
 # ── What to Watch signals ────────────────────────────────────────────────────
@@ -147,7 +164,25 @@ def active_global_sectors(all_text):
         hits = [kw for kw in sector["keywords"] if kw in combined]
         if hits:
             matched.append({**sector, "hits": hits[:3]})
-    return matched[:6] if matched else GLOBAL_SECTORS[:4]
+    # always return at least 4 sectors even on quiet news days
+    return matched[:8] if matched else GLOBAL_SECTORS[:4]
+
+def build_nse_patterns(active_sectors):
+    """Build dynamic NSE patterns from today's active sectors."""
+    patterns = []
+    seen = set()
+    for s in active_sectors:
+        nse_tickers = [t for t in s["nse"] if t not in seen]
+        if not nse_tickers:
+            continue
+        seen.update(nse_tickers)
+        patterns.append({
+            "name": s["name"],
+            "tickers": nse_tickers,
+            "signal": s["signal"],
+            "triggers": s.get("hits", []),
+        })
+    return patterns
 
 # ── Price ─────────────────────────────────────────────────────────────────────
 def get_price(ticker):
@@ -200,11 +235,14 @@ try:
     today_str = datetime.utcnow().strftime("%Y-%m-%d")
     run_ts    = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
-    # 1. News
+    # 1. News → active sectors → dynamic NSE patterns
     print("Fetching news...")
     all_text, headlines_by_region = fetch_news()
     themes = extract_themes(all_text)
     active_sectors = active_global_sectors(all_text)
+    nse_patterns = build_nse_patterns(active_sectors)
+    print(f"Active sectors: {[s['name'] for s in active_sectors]}")
+    print(f"NSE patterns: {[p['name'] for p in nse_patterns]}")
 
     # Fixed global stock lists — always fetched and shown
     US_STOCKS = [
@@ -233,11 +271,11 @@ try:
     ]
 
     # 2. Prices — collect all tickers we need
-    macro_tickers  = ["^NSEI","^BSESN","^GSPC","^IXIC","^DJI","^FTSE","^GDAXI","^FCHI","^STOXX50E","GC=F","CL=F"]
-    nse_tickers    = list({t for p in NSE_PATTERNS for t in p["tickers"]})
-    adaptive_tickers = list({t for s in active_sectors for t in s["tickers"]})
-    fixed_global   = [t for t, _ in US_STOCKS + EU_STOCKS]
-    all_tickers    = list(set(macro_tickers + nse_tickers + adaptive_tickers + fixed_global))
+    macro_tickers    = ["^NSEI","^BSESN","^GSPC","^IXIC","^DJI","^FTSE","^GDAXI","^FCHI","^STOXX50E","GC=F","CL=F"]
+    nse_tickers      = list({t for p in nse_patterns for t in p["tickers"]})
+    adaptive_tickers = list({t for s in active_sectors for t in s.get("global", [])})
+    fixed_global     = [t for t, _ in US_STOCKS + EU_STOCKS]
+    all_tickers      = list(set(macro_tickers + nse_tickers + adaptive_tickers + fixed_global))
 
     print(f"Fetching {len(all_tickers)} prices...")
     prices = {}
@@ -268,16 +306,18 @@ try:
         macro_row("CL=F",      "🛢️ WTI Crude", "$", 1),
     ])
 
-    # ── Section 3: NSE Pattern Health ─────────────────────────────────────
+    # ── Section 3: NSE Pattern Health (dynamic) ────────────────────────────
     pattern_rows = []
-    for p in NSE_PATTERNS:
+    for p in nse_patterns:
         rets = [pct(prices.get(t), BASELINE.get(t)) for t in p["tickers"] if prices.get(t) and BASELINE.get(t)]
         avg  = sum(rets)/len(rets) if rets else None
         icon, label = pattern_status(avg, p["signal"])
         lead = p["tickers"][0]
         lp   = prices.get(lead)
-        price_str = f"₹{lp:.0f}" if lp else "N/A"
-        pattern_rows.append(f"| {icon} {p['name']} | {price_str} | {fmt(pct(lp, BASELINE.get(lead)))} | {label} |")
+        lead_name = lead.replace(".NS","")
+        p_str = f"₹{lp:.0f}" if lp else "N/A"
+        triggers = ", ".join(p.get("triggers", []))
+        pattern_rows.append(f"| {icon} {p['name']} | {lead_name} {p_str} | {fmt(pct(lp, BASELINE.get(lead)))} | {label} | _{triggers}_ |")
 
     # ── Section 4: Global Stocks in Focus ──────────────────────────────────
     def price_fmt(ticker, p_val):
@@ -301,12 +341,12 @@ try:
         sig_icon, sig_label = stock_signal(r)
         return f"| {label} | {price_fmt(ticker, p_val)} | {fmt(r)} | {sig_icon} {sig_label} |"
 
-    # Adaptive: news-driven highlights (deduplicated, exclude NSE-only tickers)
+    # Adaptive: news-driven global highlights
     adaptive_rows = []
     seen_adaptive = set()
     for s in active_sectors:
-        for ticker in s["tickers"]:
-            if ticker in seen_adaptive or ticker.endswith(".NS"):
+        for ticker in s.get("global", []):
+            if ticker in seen_adaptive:
                 continue
             seen_adaptive.add(ticker)
             p_val = prices.get(ticker)
@@ -367,9 +407,9 @@ try:
         f"|---|---|---|---|\n"
         f"{macro_rows}\n\n"
         f"---\n\n"
-        f"## 🟢 NSE Pattern Health\n\n"
-        f"| Pattern | Lead Stock | vs Apr 1 | Status |\n"
-        f"|---|---|---|---|\n"
+        f"## 🟢 NSE Pattern Health — {len(nse_patterns)} patterns today\n\n"
+        f"| Pattern | Lead Stock | vs Apr 1 | Status | News Trigger |\n"
+        f"|---|---|---|---|---|\n"
         f"{NL.join(pattern_rows)}\n\n"
         f"---\n\n"
         f"## 🌍 Global Stocks in Focus\n\n"
