@@ -206,11 +206,38 @@ try:
     themes = extract_themes(all_text)
     active_sectors = active_global_sectors(all_text)
 
+    # Fixed global stock lists — always fetched and shown
+    US_STOCKS = [
+        ("AAPL",  "Apple"),
+        ("MSFT",  "Microsoft"),
+        ("NVDA",  "Nvidia"),
+        ("GOOGL", "Alphabet"),
+        ("AMZN",  "Amazon"),
+        ("META",  "Meta"),
+        ("TSLA",  "Tesla"),
+        ("JPM",   "JPMorgan"),
+        ("XOM",   "ExxonMobil"),
+        ("LMT",   "Lockheed"),
+    ]
+    EU_STOCKS = [
+        ("ASML.AS", "ASML"),
+        ("SAP.DE",  "SAP"),
+        ("SIE.DE",  "Siemens"),
+        ("AIR.PA",  "Airbus"),
+        ("MC.PA",   "LVMH"),
+        ("SHEL.L",  "Shell"),
+        ("NOVN.SW", "Novartis"),
+        ("ROG.SW",  "Roche"),
+        ("BARC.L",  "Barclays"),
+        ("HSBA.L",  "HSBC"),
+    ]
+
     # 2. Prices — collect all tickers we need
-    macro_tickers = ["^NSEI","^BSESN","^GSPC","^IXIC","^DJI","^FTSE","^GDAXI","^FCHI","^STOXX50E","GC=F","CL=F"]
-    nse_tickers   = list({t for p in NSE_PATTERNS for t in p["tickers"]})
-    global_tickers= list({t for s in active_sectors for t in s["tickers"]})
-    all_tickers   = list(set(macro_tickers + nse_tickers + global_tickers))
+    macro_tickers  = ["^NSEI","^BSESN","^GSPC","^IXIC","^DJI","^FTSE","^GDAXI","^FCHI","^STOXX50E","GC=F","CL=F"]
+    nse_tickers    = list({t for p in NSE_PATTERNS for t in p["tickers"]})
+    adaptive_tickers = list({t for s in active_sectors for t in s["tickers"]})
+    fixed_global   = [t for t, _ in US_STOCKS + EU_STOCKS]
+    all_tickers    = list(set(macro_tickers + nse_tickers + adaptive_tickers + fixed_global))
 
     print(f"Fetching {len(all_tickers)} prices...")
     prices = {}
@@ -253,36 +280,47 @@ try:
         pattern_rows.append(f"| {icon} {p['name']} | {price_str} | {fmt(pct(lp, BASELINE.get(lead)))} | {label} |")
 
     # ── Section 4: Global Stocks in Focus ──────────────────────────────────
-    def price_str(ticker, p_val):
+    def price_fmt(ticker, p_val):
         if p_val is None: return "N/A"
-        if ticker.endswith(".NS"):   return f"₹{p_val:,.0f}"
-        if ticker.endswith(".L"):    return f"p{p_val:,.0f}"   # pence
-        if "=F" in ticker:           return f"${p_val:,.1f}"
+        if ticker.endswith(".NS"):  return f"₹{p_val:,.0f}"
+        if ticker.endswith(".L"):   return f"p{p_val:,.0f}"
+        if "=F" in ticker:          return f"${p_val:,.1f}"
         return f"${p_val:,.2f}"
 
     def stock_signal(r):
-        """Derive a simple BUY / HOLD / SELL signal from % change vs baseline."""
-        if r is None:        return ("⚪", "NO DATA")
-        if r > 10:           return ("🟢", "STRONG BUY")
-        if r > 3:            return ("🟢", "BUY")
-        if r > -3:           return ("🟡", "HOLD")
-        if r > -10:          return ("🔴", "SELL")
-        return                      ("🔴", "STRONG SELL")
+        if r is None:   return ("⚪", "NO DATA")
+        if r > 10:      return ("🟢", "STRONG BUY")
+        if r >  3:      return ("🟢", "BUY")
+        if r > -3:      return ("🟡", "HOLD")
+        if r > -10:     return ("🔴", "SELL")
+        return                 ("🔴", "STRONG SELL")
 
-    global_rows = []
-    seen_global = set()
+    def stock_row(ticker, label):
+        p_val = prices.get(ticker)
+        r     = pct(p_val, BASELINE.get(ticker))
+        sig_icon, sig_label = stock_signal(r)
+        return f"| {label} | {price_fmt(ticker, p_val)} | {fmt(r)} | {sig_icon} {sig_label} |"
+
+    # Adaptive: news-driven highlights (deduplicated, exclude NSE-only tickers)
+    adaptive_rows = []
+    seen_adaptive = set()
     for s in active_sectors:
-        for ticker in s["tickers"][:2]:
-            if ticker in seen_global:
+        for ticker in s["tickers"]:
+            if ticker in seen_adaptive or ticker.endswith(".NS"):
                 continue
-            seen_global.add(ticker)
+            seen_adaptive.add(ticker)
             p_val = prices.get(ticker)
             r     = pct(p_val, BASELINE.get(ticker))
-            name  = ticker.replace(".NS","").replace(".AS","").replace(".DE","").replace(".PA","").replace(".L","").replace(".SW","")
+            name  = ticker.replace(".AS","").replace(".DE","").replace(".PA","").replace(".L","").replace(".SW","")
             sig_icon, sig_label = stock_signal(r)
-            global_rows.append(
-                f"| {name} | {s['name']} | {price_str(ticker, p_val)} | {fmt(r)} | {sig_icon} {sig_label} |"
+            adaptive_rows.append(
+                f"| {name} | {s['name']} | {price_fmt(ticker, p_val)} | {fmt(r)} | {sig_icon} {sig_label} |"
             )
+
+    # Fixed US stocks table
+    us_rows   = [stock_row(t, label) for t, label in US_STOCKS]
+    # Fixed EU stocks table
+    eu_rows   = [stock_row(t, label) for t, label in EU_STOCKS]
 
     # ── Section 5: What to Watch Tomorrow ──────────────────────────────────
     watch_signals = []
@@ -309,7 +347,13 @@ try:
     # ── Assemble .md ────────────────────────────────────────────────────────
     NL = "\n"
     news_block = "\n\n".join(news_sections)
-    global_block = NL.join(global_rows) if global_rows else "| — | No data | — | — | — |"
+
+    adaptive_block = (
+        f"### 📡 News-Adaptive Highlights\n\n"
+        f"| Ticker | Theme | Price | vs Apr 1 | Signal |\n"
+        f"|---|---|---|---|---|\n"
+        f"{NL.join(adaptive_rows)}\n"
+    ) if adaptive_rows else ""
 
     md = (
         f"# 📊 Vest Market Tracker — {today_str}\n"
@@ -329,10 +373,15 @@ try:
         f"{NL.join(pattern_rows)}\n\n"
         f"---\n\n"
         f"## 🌍 Global Stocks in Focus\n\n"
-        f"_Adaptive — driven by today's news themes_\n\n"
-        f"| Ticker | Theme | Price | vs Apr 1 | Signal |\n"
-        f"|---|---|---|---|---|\n"
-        f"{global_block}\n\n"
+        f"{adaptive_block}\n"
+        f"### 🇺🇸 US Stocks\n\n"
+        f"| Stock | Price | vs Apr 1 | Signal |\n"
+        f"|---|---|---|---|\n"
+        f"{NL.join(us_rows)}\n\n"
+        f"### 🇪🇺 European Stocks\n\n"
+        f"| Stock | Price | vs Apr 1 | Signal |\n"
+        f"|---|---|---|---|\n"
+        f"{NL.join(eu_rows)}\n\n"
         f"---\n\n"
         f"## 👀 What to Watch Tomorrow\n\n"
         f"{NL.join(watch_signals)}\n\n"
