@@ -5,22 +5,8 @@ from output_helper import publish, send_telegram_text
 TG_TOKEN = os.environ["TG_TOKEN"]
 TG_CHAT_ID = os.environ["TG_CHAT_ID"]
 
-# ── Profile ─────────────────────────────────────────────────────────────────
-# Surya Prabhakaran | Chief Architect / VP Architecture | Belgium | Travel-open
-# TOGAF 95% | AWS/Azure/GCP | AI/MLOps | 50+ enterprise transformations
+STRIP = re.compile(r"<[^>]+>")
 
-SEARCH_QUERIES = [
-    "Chief Architect",
-    "Enterprise Architect Director",
-    "VP Architecture",
-    "Head of Enterprise Architecture",
-    "Principal Architect TOGAF",
-    "Solution Architect Lead cloud",
-]
-
-LOCATION = "Belgium"
-
-# Keywords that signal a good fit (travel, senior scope, relevant tech)
 POSITIVE_SIGNALS = [
     "togaf", "enterprise architect", "chief architect", "vp architect",
     "head of architect", "principal architect", "transformation", "cloud",
@@ -28,40 +14,77 @@ POSITIVE_SIGNALS = [
     "travel", "international", "european", "governance", "strategy",
     "financial services", "insurance", "healthcare", "public sector",
 ]
-
 NEGATIVE_SIGNALS = [
     "junior", "medior", "graduate", "intern", "entry level",
     "front-end", "frontend", "backend", "devops engineer", "developer",
     "qa", "test", "scrum master", "project manager",
 ]
 
-# ── Scrapers ────────────────────────────────────────────────────────────────
-def search_indeed_rss(query, location="Belgium"):
-    """Indeed RSS feed — returns list of (title, company, url, snippet)"""
-    q = urllib.parse.quote_plus(query)
-    l = urllib.parse.quote_plus(location)
-    url = f"https://be.indeed.com/rss?q={q}&l={l}&sort=date&fromage=7"
+# ── Board scrapers ────────────────────────────────────────────────────────────
+
+def scrape_rss(url, source_name, max_items=8):
+    """Generic RSS scraper — returns list of (title, link, desc)."""
     results = []
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=12) as r:
             root = ET.fromstring(r.read().decode("utf-8", errors="replace"))
-        strip = re.compile(r"<[^>]+>")
-        for item in list(root.iter("item"))[:5]:
-            title = strip.sub("", item.findtext("title", "")).strip()
-            link = item.findtext("link", "").strip()
-            desc = strip.sub("", item.findtext("description", "")).strip()[:200]
-            results.append((title, link, desc))
+        for item in list(root.iter("item"))[:max_items]:
+            title = STRIP.sub("", item.findtext("title", "")).strip()
+            link  = item.findtext("link", "").strip()
+            desc  = STRIP.sub("", item.findtext("description", "")).strip()[:300]
+            if title and link:
+                results.append((title, link, desc, source_name))
     except Exception as e:
-        print(f"Indeed RSS error [{query}]: {e}")
+        print(f"RSS error [{source_name}]: {e}")
     return results
 
-def score_job(title, desc):
-    """Return (score, reason) — higher is better fit."""
+def search_indeed_rss(query, location="Belgium"):
+    q = urllib.parse.quote_plus(query)
+    l = urllib.parse.quote_plus(location)
+    url = f"https://be.indeed.com/rss?q={q}&l={l}&sort=date&fromage=14"
+    return scrape_rss(url, "Indeed BE")
+
+def search_linkedin_rss(query, location="Belgium"):
+    q = urllib.parse.quote_plus(query)
+    l = urllib.parse.quote_plus(location)
+    url = f"https://www.linkedin.com/jobs/search/?keywords={q}&location={l}&f_TPR=r604800&format=rss"
+    return scrape_rss(url, "LinkedIn")
+
+def search_stepstone(query):
+    q = urllib.parse.quote_plus(query)
+    url = f"https://www.stepstone.be/candidate/search-results?query={q}&location=Belgium&radius=30&sort=date&format=rss"
+    return scrape_rss(url, "Stepstone BE")
+
+def search_eurojobs(query):
+    # EuroBrussels / EU-focused boards
+    q = urllib.parse.quote_plus(query)
+    url = f"https://www.eurojobs.com/search-results/?q={q}&l=Belgium&format=rss"
+    return scrape_rss(url, "EuroJobs")
+
+# ── Scoring ───────────────────────────────────────────────────────────────────
+
+def match_pct(title, desc):
+    """Score 0-100 match against Surya's profile."""
     text = (title + " " + desc).lower()
-    pos = sum(1 for kw in POSITIVE_SIGNALS if kw in text)
-    neg = sum(1 for kw in NEGATIVE_SIGNALS if kw in text)
-    return pos - (neg * 3)
+    score = 50
+    # positive signals
+    if any(k in text for k in ["chief architect","vp architect","head of architect","ea director"]):
+        score += 10  # senior title
+    if "belgium" in text or "brussels" in text or "antwerp" in text or "ghent" in text:
+        score += 10  # location confirmed
+    if any(k in text for k in ["togaf","cloud","aws","azure","gcp"]):
+        score += 10  # tech fit
+    if any(k in text for k in ["travel","international","european","pan-european"]):
+        score += 10  # travel
+    if any(k in text for k in ["financial","insurance","healthcare","public sector","banking"]):
+        score += 10  # industry fit
+    # negative signals
+    if any(k in text for k in ["junior","medior","graduate","intern","entry level"]):
+        score -= 20
+    if any(k in text for k in ["developer","devops","frontend","backend","qa","scrum"]):
+        score -= 20
+    return min(max(score, 0), 100)
 
 def send_error(err):
     try:
@@ -69,66 +92,62 @@ def send_error(err):
     except:
         pass
 
-# ── Main ─────────────────────────────────────────────────────────────────────
-import urllib.parse
+# ── Main ──────────────────────────────────────────────────────────────────────
+QUERIES = [
+    "Chief Architect",
+    "Enterprise Architect Director",
+    "VP Architecture",
+    "Head of Enterprise Architecture",
+    "Principal Architect TOGAF",
+]
 
 try:
     today_str = datetime.now().strftime("%Y-%m-%d")
     print("Scanning job boards...")
 
     seen_urls = set()
-    all_jobs = []  # (score, title, url, desc, query)
+    all_jobs = []  # (match_pct, title, url, source)
 
-    for query in SEARCH_QUERIES:
-        results = search_indeed_rss(query, LOCATION)
-        for title, url, desc in results:
-            if url in seen_urls:
-                continue
-            seen_urls.add(url)
-            score = score_job(title, desc)
-            if score >= 0:  # filter out clear mismatches
-                all_jobs.append((score, title, url, desc, query))
-        time.sleep(0.5)
+    for query in QUERIES:
+        for fn in [search_indeed_rss, search_linkedin_rss, search_stepstone, search_eurojobs]:
+            try:
+                results = fn(query) if fn != search_indeed_rss else search_indeed_rss(query)
+                for title, url, desc, source in results:
+                    if url in seen_urls:
+                        continue
+                    seen_urls.add(url)
+                    pct = match_pct(title, desc)
+                    if pct >= 60:
+                        all_jobs.append((pct, title, url, source))
+            except Exception as e:
+                print(f"Board error: {e}")
+            time.sleep(0.3)
 
-    # Sort by score descending
+    # Sort by match % descending, dedupe by title similarity
     all_jobs.sort(key=lambda x: x[0], reverse=True)
-    top_jobs = all_jobs[:8]
+    top_jobs = all_jobs[:12]
 
-    if top_jobs:
-        job_lines = []
-        for score, title, url, desc, query in top_jobs:
-            fit = "🟢 Strong fit" if score >= 4 else ("🟡 Possible" if score >= 2 else "⚪ Review")
-            job_lines.append(
-                f"{fit} *{title}*\n"
-                f"  _{desc[:120]}_\n"
-                f"  [Apply]({url})"
-            )
-        jobs_block = "\n\n".join(job_lines)
-    else:
-        jobs_block = "_No new matching roles found this week. Check manually:_\n" \
-                     "• [LinkedIn](https://www.linkedin.com/jobs/search/?keywords=chief+architect+TOGAF&location=Belgium)\n" \
-                     "• [Indeed BE](https://be.indeed.com/jobs?q=chief+architect&l=Belgium)\n" \
-                     "• [EU Careers](https://eu-careers.europa.eu)"
+    # Build source summary
+    sources = {}
+    for _, _, _, src in top_jobs:
+        sources[src] = sources.get(src, 0) + 1
+    source_summary = " · ".join(f"{src} ({n})" for src, n in sources.items())
 
     job_lines = "\n".join(
-        f"- [{title}]({url})"
-        for _, title, url, desc, query in top_jobs
+        f"- [{title} — {source}]({url}) — **{pct}% match**"
+        for pct, title, url, source in top_jobs
     ) or "- No strong matches found this week."
 
     md_content = (
         f"# 💼 Vest Job Scanner — {today_str}\n\n"
+        f"_Sources: {source_summary or 'Indeed · LinkedIn · Stepstone · EuroJobs'}_\n\n"
         f"## Matches ({len(top_jobs)} roles)\n\n"
         f"{job_lines}\n\n"
-        f"---\n\n"
-        f"## Search Links\n\n"
-        f"- [LinkedIn – Chief Architect TOGAF Belgium](https://www.linkedin.com/jobs/search/?keywords=chief+architect+TOGAF&location=Belgium)\n"
-        f"- [Indeed BE – Chief Architect](https://be.indeed.com/jobs?q=chief+architect+TOGAF&l=Belgium)\n"
-        f"- [EU Careers](https://eu-careers.europa.eu)\n\n"
         f"---\n"
         f"_Vest · Job Scanner · {today_str}_\n"
     )
 
-    summary = f"💼 Vest Job Scanner {today_str} — {len(top_jobs)} matches found"
+    summary = f"💼 Vest Job Scanner {today_str} — {len(top_jobs)} matches across {len(sources)} boards"
     print(md_content)
     publish(TG_TOKEN, TG_CHAT_ID, md_content, "job-scan", summary)
     print("Sent successfully.")
