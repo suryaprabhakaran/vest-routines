@@ -110,27 +110,23 @@ try:
                      "• [Indeed BE](https://be.indeed.com/jobs?q=chief+architect&l=Belgium)\n" \
                      "• [EU Careers](https://eu-careers.europa.eu)"
 
-    md_content = f"""# Vest Job Scanner — {today_str}
+    job_lines = "\n".join(
+        f"- [{title}]({url})"
+        for _, title, url, desc, query in top_jobs
+    ) or "- No strong matches found this week."
 
-**Profile:** Chief Architect / VP Architecture | Belgium | Travel OK
-**Skills:** TOGAF · AWS · Azure · GCP · AI/MLOps · Enterprise Transformation
-
-## Top Matches ({len(top_jobs)} roles)
-
-""" + "\n\n".join(
-        f"### {'🟢' if score >= 4 else ('🟡' if score >= 2 else '⚪')} {title}\n- **Query:** {query}\n- **Snippet:** {desc}\n- **Apply:** {url}"
-        for score, title, url, desc, query in top_jobs
-    ) + f"""
-
-## Direct Search Links
-
-- [LinkedIn – Chief Architect TOGAF Belgium](https://www.linkedin.com/jobs/search/?keywords=chief+architect+TOGAF&location=Belgium)
-- [Indeed BE – Chief Architect](https://be.indeed.com/jobs?q=chief+architect+TOGAF&l=Belgium)
-- [EU Careers](https://eu-careers.europa.eu)
-
----
-_Vest · Job Scanner · profile-matched_
-"""
+    md_content = (
+        f"# 💼 Vest Job Scanner — {today_str}\n\n"
+        f"## Matches ({len(top_jobs)} roles)\n\n"
+        f"{job_lines}\n\n"
+        f"---\n\n"
+        f"## Search Links\n\n"
+        f"- [LinkedIn – Chief Architect TOGAF Belgium](https://www.linkedin.com/jobs/search/?keywords=chief+architect+TOGAF&location=Belgium)\n"
+        f"- [Indeed BE – Chief Architect](https://be.indeed.com/jobs?q=chief+architect+TOGAF&l=Belgium)\n"
+        f"- [EU Careers](https://eu-careers.europa.eu)\n\n"
+        f"---\n"
+        f"_Vest · Job Scanner · {today_str}_\n"
+    )
 
     summary = f"💼 Vest Job Scanner {today_str} — {len(top_jobs)} matches found"
     print(md_content)
