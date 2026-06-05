@@ -1,0 +1,33 @@
+name: Vest Routines
+
+on:
+  schedule:
+    - cron: '0 18 * * 0'   # Every Sunday 6pm UTC (8pm Brussels)
+  workflow_dispatch:         # Manual trigger from Claude Code or GitHub UI
+
+jobs:
+  nse-tracker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run NSE tracker
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: python scripts/nse_tracker.py
+
+  job-scanner:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run job scanner
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: python scripts/job_scanner.py
