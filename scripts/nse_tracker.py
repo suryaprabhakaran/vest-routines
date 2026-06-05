@@ -6,129 +6,140 @@ TG_CHAT_ID = os.environ["TG_CHAT_ID"]
 
 # ── Baselines (Apr 1 2025) ──────────────────────────────────────────────────
 BASELINE = {
-    "^NSEI":22679.40,"^BSESN":73134.32,"RELIANCE.NS":1369.20,
-    "BPCL.NS":281.25,"IOC.NS":135.72,"HINDPETRO.NS":335.55,
-    "ONGC.NS":288.05,"HDFCBANK.NS":742.25,"SBIN.NS":1017.80,
-    "ICICIBANK.NS":1212.70,"AXISBANK.NS":1193.10,"KOTAKBANK.NS":356.05,
-    "TCS.NS":2408.20,"INFY.NS":1275.70,"WIPRO.NS":191.18,
-    "TECHM.NS":1404.50,"HCLTECH.NS":1354.40,"SUNPHARMA.NS":1728.50,
-    "DRREDDY.NS":1209.60,"CIPLA.NS":1195.90,"MARUTI.NS":12509.00,
-    "BHARTIARTL.NS":1781.90,"IDEA.NS":8.64,"HAL.NS":3670.80,
-    "BEL.NS":418.70,"HINDUNILVR.NS":2064.70,"ITC.NS":291.70,
-    "TITAN.NS":4065.50,"TATAPOWER.NS":380.20,"PAYTM.NS":997.10,
-    "MCX.NS":2469.70,"BANKBARODA.NS":252.03,
+    # India indices
+    "^NSEI": 22679.40, "^BSESN": 73134.32,
+    # India stocks
+    "RELIANCE.NS": 1369.20, "BPCL.NS": 281.25, "IOC.NS": 135.72,
+    "HINDPETRO.NS": 335.55, "ONGC.NS": 288.05, "HDFCBANK.NS": 742.25,
+    "SBIN.NS": 1017.80, "ICICIBANK.NS": 1212.70, "AXISBANK.NS": 1193.10,
+    "KOTAKBANK.NS": 356.05, "TCS.NS": 2408.20, "INFY.NS": 1275.70,
+    "WIPRO.NS": 191.18, "TECHM.NS": 1404.50, "HCLTECH.NS": 1354.40,
+    "SUNPHARMA.NS": 1728.50, "DRREDDY.NS": 1209.60, "CIPLA.NS": 1195.90,
+    "MARUTI.NS": 12509.00, "BHARTIARTL.NS": 1781.90, "IDEA.NS": 8.64,
+    "HAL.NS": 3670.80, "BEL.NS": 418.70, "HINDUNILVR.NS": 2064.70,
+    "ITC.NS": 291.70, "TITAN.NS": 4065.50, "TATAPOWER.NS": 380.20,
+    "PAYTM.NS": 997.10, "MCX.NS": 2469.70, "BANKBARODA.NS": 252.03,
+    # US indices
+    "^GSPC": 5611.85, "^IXIC": 17449.89, "^DJI": 41989.96,
+    # US stocks
+    "AAPL": 223.19, "MSFT": 378.80, "NVDA": 110.00, "GOOGL": 165.40,
+    "AMZN": 197.12, "META": 558.11, "TSLA": 265.00, "JPM": 238.24,
+    "BAC": 43.90, "GS": 538.50, "XOM": 117.50, "CVX": 156.70,
+    "JNJ": 158.80, "UNH": 490.50, "PFE": 24.80, "LMT": 478.20,
+    "RTX": 125.40, "INTC": 20.50,
+    # European indices
+    "^STOXX50E": 5162.00, "^FTSE": 8614.00, "^GDAXI": 22035.00, "^FCHI": 7882.00,
+    # European stocks (Yahoo tickers)
+    "ASML.AS": 720.00, "SAP.DE": 254.00, "SHEL.L": 2580.00,
+    "NOVN.SW": 87.50, "ROG.SW": 245.00, "SIE.DE": 215.00,
+    "MC.PA": 680.00, "AIR.PA": 158.00, "TTE.PA": 58.50,
+    "BARC.L": 278.00, "HSBA.L": 782.00,
 }
 
-# ── Sector keyword → (tickers, signal_direction) ───────────────────────────
-# signal: "positive" = rising is good, "negative" = falling is the thesis
+# ── Sector map: keyword → tickers ─────────────────────────────────────────
+# Each entry covers one thematic pattern; tickers span all markets as relevant
 SECTOR_MAP = [
     {
-        "keywords": ["defense","defence","military","hal","bel","drdo","missile","army","navy","airforce","border","war","ceasefire","pakistan","china"],
+        "keywords": ["defense","defence","military","missile","army","navy","war","ceasefire","pakistan","china","nato","ukraine","russia","weapons","hal","bel","drdo","lockheed","raytheon"],
         "name": "Defense / Geopolitics",
-        "tickers": ["HAL.NS","BEL.NS"],
+        "tickers": {"IN": ["HAL.NS","BEL.NS"], "US": ["LMT","RTX"], "EU": ["AIR.PA"]},
         "signal": "positive",
     },
     {
-        "keywords": ["oil","crude","opec","petroleum","fuel","bpcl","ioc","hpcl","hindpetro","ongc","refinery","petrol","diesel"],
-        "name": "Oil & OMCs",
-        "tickers": ["BPCL.NS","IOC.NS","HINDPETRO.NS","ONGC.NS"],
+        "keywords": ["oil","crude","opec","petroleum","bpcl","ioc","hpcl","ongc","exxon","chevron","shell","totalenergies","refinery","petrol","diesel","energy"],
+        "name": "Oil & Energy",
+        "tickers": {"IN": ["BPCL.NS","IOC.NS","ONGC.NS"], "US": ["XOM","CVX"], "EU": ["SHEL.L","TTE.PA"]},
         "signal": "negative",
     },
     {
-        "keywords": ["pharma","drug","fda","usfda","health","medicine","hospital","cipla","sunpharma","drreddy","biocon","pandemic","epidemic"],
+        "keywords": ["pharma","drug","fda","usfda","health","medicine","cipla","sunpharma","drreddy","pfizer","johnson","novartis","roche","pandemic","biotech"],
         "name": "Pharma / Healthcare",
-        "tickers": ["SUNPHARMA.NS","CIPLA.NS","DRREDDY.NS"],
+        "tickers": {"IN": ["SUNPHARMA.NS","CIPLA.NS","DRREDDY.NS"], "US": ["JNJ","PFE","UNH"], "EU": ["NOVN.SW","ROG.SW"]},
         "signal": "positive",
     },
     {
-        "keywords": ["it","software","tech","infosys","tcs","wipro","hcltech","techm","layoff","ai","automation","outsourcing","visa","h1b"],
-        "name": "IT / Tech",
-        "tickers": ["TCS.NS","INFY.NS","WIPRO.NS","HCLTECH.NS","TECHM.NS"],
-        "signal": "negative",
+        "keywords": ["it","software","tech","ai","artificial intelligence","chip","semiconductor","nvidia","microsoft","google","apple","infosys","tcs","wipro","hcltech","automation","cloud","quantum"],
+        "name": "Tech / AI / Semis",
+        "tickers": {"IN": ["TCS.NS","INFY.NS","HCLTECH.NS"], "US": ["NVDA","MSFT","GOOGL","AAPL","INTC"], "EU": ["ASML.AS","SAP.DE"]},
+        "signal": "positive",
     },
     {
-        "keywords": ["bank","rbi","rate","repo","credit","loan","npa","nifty bank","hdfc","sbi","icici","axis","kotak","banking","liquidity","inflation"],
+        "keywords": ["bank","rate","fed","ecb","rbi","repo","interest","inflation","credit","npa","hdfc","sbi","icici","jpmorgan","goldman","barclays","hsbc","liquidity"],
         "name": "Banking & Rates",
-        "tickers": ["HDFCBANK.NS","SBIN.NS","ICICIBANK.NS","AXISBANK.NS","KOTAKBANK.NS","BANKBARODA.NS"],
+        "tickers": {"IN": ["HDFCBANK.NS","SBIN.NS","ICICIBANK.NS","BANKBARODA.NS"], "US": ["JPM","BAC","GS"], "EU": ["BARC.L","HSBA.L"]},
         "signal": "positive",
     },
     {
-        "keywords": ["telecom","5g","jio","airtel","vi","vodafone","idea","spectrum","bharti"],
-        "name": "Telecom",
-        "tickers": ["BHARTIARTL.NS","IDEA.NS"],
-        "signal": "positive",
-    },
-    {
-        "keywords": ["fmcg","consumer","hul","hindustan unilever","itc","rural","inflation","monsoon","kirana"],
-        "name": "FMCG / Consumer",
-        "tickers": ["HINDUNILVR.NS","ITC.NS"],
-        "signal": "positive",
-    },
-    {
-        "keywords": ["commodity","gold","silver","metal","mcx","futures","derivatives","trading volume"],
-        "name": "Commodity / MCX",
-        "tickers": ["MCX.NS","RELIANCE.NS"],
-        "signal": "positive",
-    },
-    {
-        "keywords": ["auto","automobile","ev","electric vehicle","maruti","tata motors","mahindra","car","suv","vehicle sales"],
+        "keywords": ["ev","electric vehicle","tesla","auto","automobile","maruti","car","suv","vehicle","battery","charging"],
         "name": "Auto / EV",
-        "tickers": ["MARUTI.NS","TATAPOWER.NS"],
+        "tickers": {"IN": ["MARUTI.NS","TATAPOWER.NS"], "US": ["TSLA"], "EU": ["SIE.DE"]},
         "signal": "positive",
     },
     {
-        "keywords": ["fintech","paytm","payment","upi","digital","wallet","sebi","stock market","nse","bse"],
-        "name": "Fintech / Markets",
-        "tickers": ["PAYTM.NS","MCX.NS"],
+        "keywords": ["trade","tariff","export","import","wto","supply chain","manufacturing","dollar","euro","rupee","currency","forex"],
+        "name": "Trade / Macro",
+        "tickers": {"IN": ["RELIANCE.NS","^NSEI"], "US": ["AMZN","^GSPC"], "EU": ["^STOXX50E"]},
         "signal": "positive",
     },
     {
-        "keywords": ["power","renewable","solar","wind","energy","tatapower","green","electricity","grid"],
+        "keywords": ["fmcg","consumer","hul","hindustan unilever","itc","meta","amazon","retail","luxury","titan","monsoon","rural","spending"],
+        "name": "Consumer / FMCG",
+        "tickers": {"IN": ["HINDUNILVR.NS","ITC.NS","TITAN.NS"], "US": ["AMZN","META"], "EU": ["MC.PA"]},
+        "signal": "positive",
+    },
+    {
+        "keywords": ["telecom","5g","airtel","jio","vodafone","bharti","spectrum","broadband"],
+        "name": "Telecom",
+        "tickers": {"IN": ["BHARTIARTL.NS","IDEA.NS"], "US": [], "EU": []},
+        "signal": "positive",
+    },
+    {
+        "keywords": ["power","renewable","solar","wind","green energy","tatapower","electricity","grid","climate","cop"],
         "name": "Power / Renewables",
-        "tickers": ["TATAPOWER.NS","ONGC.NS"],
-        "signal": "positive",
-    },
-    {
-        "keywords": ["luxury","jewellery","jewelry","titan","watches","retail","gold demand"],
-        "name": "Luxury / Retail",
-        "tickers": ["TITAN.NS"],
+        "tickers": {"IN": ["TATAPOWER.NS","ONGC.NS"], "US": ["XOM"], "EU": ["TTE.PA","SIE.DE"]},
         "signal": "positive",
     },
 ]
 
 # ── News fetch ──────────────────────────────────────────────────────────────
-RSS_FEEDS = [
-    "https://www.livemint.com/rss/markets",
-    "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms",
-    "https://www.business-standard.com/rss/markets-106.rss",
-]
+RSS_FEEDS = {
+    "India":  ["https://www.livemint.com/rss/markets",
+               "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms"],
+    "US":     ["https://feeds.finance.yahoo.com/rss/2.0/headline?s=^GSPC&region=US&lang=en-US",
+               "https://feeds.marketwatch.com/marketwatch/topstories/"],
+    "Europe": ["https://feeds.bbci.co.uk/news/business/rss.xml",
+               "https://www.ft.com/rss/home/uk"],
+}
 
 def fetch_headlines():
     strip = re.compile(r"<[^>]+>")
-    headlines = []
-    for feed_url in RSS_FEEDS:
-        try:
-            req = urllib.request.Request(feed_url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=12) as r:
-                root = ET.fromstring(r.read().decode("utf-8", errors="replace"))
-            for item in list(root.iter("item"))[:8]:
-                title = strip.sub("", item.findtext("title", "")).strip()
-                desc = strip.sub("", item.findtext("description", "")).strip()
-                if title:
-                    headlines.append((title + " " + desc).lower())
-        except Exception as e:
-            print(f"Feed error {feed_url}: {e}")
-    return headlines
+    all_text = []
+    display = {"India": [], "US": [], "Europe": []}
+    for region, feeds in RSS_FEEDS.items():
+        for feed_url in feeds:
+            try:
+                req = urllib.request.Request(feed_url, headers={"User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(req, timeout=12) as r:
+                    root = ET.fromstring(r.read().decode("utf-8", errors="replace"))
+                for item in list(root.iter("item"))[:6]:
+                    title = strip.sub("", item.findtext("title", "")).strip()
+                    desc = strip.sub("", item.findtext("description", "")).strip()
+                    if title:
+                        all_text.append((title + " " + desc).lower())
+                        if len(display[region]) < 3:
+                            display[region].append(f"• {title}")
+            except Exception as e:
+                print(f"Feed error {feed_url}: {e}")
+    return all_text, display
 
-def match_sectors(headlines):
+def match_sectors(all_text):
+    combined = " ".join(all_text)
     matched = []
-    combined = " ".join(headlines)
     for sector in SECTOR_MAP:
         hits = [kw for kw in sector["keywords"] if kw in combined]
         if hits:
             matched.append({**sector, "hits": hits[:3]})
-    # Always include Nifty context — return at most 6 sectors
-    return matched[:6] if matched else SECTOR_MAP[:4]
+    return matched[:7] if matched else SECTOR_MAP[:4]
 
 # ── Price fetch ─────────────────────────────────────────────────────────────
 def get_price(ticker):
@@ -152,20 +163,17 @@ def fmt(v):
     return f"{'+' if v >= 0 else ''}{v:.1f}%"
 
 def score_status(avg, signal):
-    if avg is None: return "⚪ NO DATA"
+    if avg is None: return "⚪"
     if signal == "negative":
-        return "🔴 PLAYING OUT" if avg < -3 else ("🟡 STABILISING" if avg < 2 else "🟢 REVERSED")
-    elif signal == "speculative":
-        return "🚀 RUNNING" if avg > 10 else ("🟡 HOLDING" if avg > 0 else "🔴 FADING")
+        return "🔴" if avg < -3 else ("🟡" if avg < 2 else "🟢")
     else:
-        return "🟢 RUNNING" if avg > 5 else ("🟡 FADING" if avg > 0 else "🔴 BROKEN")
+        return "🟢" if avg > 5 else ("🟡" if avg > 0 else "🔴")
 
 # ── Telegram ────────────────────────────────────────────────────────────────
 def send_telegram(msg):
-    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-    # Telegram has a 4096 char limit; trim if needed
     if len(msg) > 4000:
         msg = msg[:3990] + "\n…(truncated)"
+    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
     data = json.dumps({"chat_id": TG_CHAT_ID, "text": msg, "parse_mode": "Markdown"}).encode()
     req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=15) as r:
@@ -175,23 +183,25 @@ def send_telegram(msg):
 
 def send_error(err):
     try:
-        send_telegram(f"⚠️ *Vest NSE Tracker failed*\n```\n{str(err)[:300]}\n```")
+        send_telegram(f"⚠️ *Vest Tracker failed*\n```\n{str(err)[:300]}\n```")
     except:
         pass
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 try:
     today_str = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
-
     print("Fetching headlines...")
-    headlines = fetch_headlines()
-    active_sectors = match_sectors(headlines)
-    print(f"Active sectors: {[s['name'] for s in active_sectors]}")
+    all_text, display_headlines = fetch_headlines()
+    active_sectors = match_sectors(all_text)
+    print(f"Active: {[s['name'] for s in active_sectors]}")
 
-    # Collect unique tickers needed
-    needed = {"^NSEI", "^BSESN"}
+    # Collect all tickers needed
+    core_indices = ["^NSEI", "^BSESN", "^GSPC", "^IXIC", "^STOXX50E", "^FTSE", "^GDAXI"]
+    needed = set(core_indices)
     for s in active_sectors:
-        needed.update(s["tickers"])
+        for tlist in s["tickers"].values():
+            needed.update(tlist)
+    needed.discard("")
 
     print(f"Fetching {len(needed)} prices...")
     prices = {}
@@ -199,60 +209,62 @@ try:
         prices[t] = get_price(t)
         time.sleep(0.25)
 
-    nifty = prices.get("^NSEI")
-    nifty_ret = pct(nifty, BASELINE.get("^NSEI"))
-    sensex = prices.get("^BSESN")
-    sensex_ret = pct(sensex, BASELINE.get("^BSESN"))
+    # ── Index summary ──
+    def idx_line(ticker, label):
+        p = prices.get(ticker)
+        r = pct(p, BASELINE.get(ticker))
+        return f"*{label}:* {p:,.0f} ({fmt(r)} vs Apr 1)" if p else f"*{label}:* N/A"
 
+    index_block = "\n".join([
+        "🇮🇳 " + idx_line("^NSEI",     "Nifty 50"),
+        "🇮🇳 " + idx_line("^BSESN",    "Sensex"),
+        "🇺🇸 " + idx_line("^GSPC",     "S&P 500"),
+        "🇺🇸 " + idx_line("^IXIC",     "Nasdaq"),
+        "🇪🇺 " + idx_line("^STOXX50E", "Euro Stoxx 50"),
+        "🇬🇧 " + idx_line("^FTSE",     "FTSE 100"),
+        "🇩🇪 " + idx_line("^GDAXI",    "DAX"),
+    ])
+
+    # ── Pattern block ──
     pattern_lines = []
     for s in active_sectors:
-        rets = [pct(prices.get(t), BASELINE.get(t)) for t in s["tickers"] if prices.get(t) and BASELINE.get(t)]
-        avg = sum(rets) / len(rets) if rets else None
-        status = score_status(avg, s["signal"])
-        lead = s["tickers"][0]
-        lp = prices.get(lead)
-        la = pct(lp, BASELINE.get(lead))
-        price_str = f"₹{lp:.0f}" if lp else "N/A"
-        triggers = ", ".join(s["hits"]) if s.get("hits") else "—"
-        pattern_lines.append(
-            f"{status} *{s['name']}*\n"
-            f"  {lead.replace('.NS','')} {price_str} | vs Apr1: {fmt(la)} | avg: {fmt(avg)}\n"
-            f"  _news triggers: {triggers}_"
-        )
+        region_parts = []
+        for region, tlist in s["tickers"].items():
+            tlist = [t for t in tlist if t]
+            if not tlist:
+                continue
+            rets = [pct(prices.get(t), BASELINE.get(t)) for t in tlist if prices.get(t) and BASELINE.get(t)]
+            avg = sum(rets) / len(rets) if rets else None
+            lead = tlist[0]
+            lp = prices.get(lead)
+            status = score_status(avg, s["signal"])
+            flag = {"IN": "🇮🇳", "US": "🇺🇸", "EU": "🇪🇺"}.get(region, "")
+            name = lead.replace(".NS", "").replace(".AS", "").replace(".DE", "").replace(".PA", "").replace(".L", "").replace(".SW", "")
+            price_str = f"₹{lp:.0f}" if region == "IN" and lp else (f"${lp:.1f}" if region == "US" and lp else (f"€{lp:.1f}" if lp else "N/A"))
+            region_parts.append(f"{flag}{status} {name} {price_str} ({fmt(avg)})")
+        triggers = ", ".join(s.get("hits", []))
+        if region_parts:
+            pattern_lines.append(f"*{s['name']}* — _{triggers}_\n  " + "  ".join(region_parts))
 
-    # Top raw headlines for display
-    display_headlines = []
-    strip = re.compile(r"<[^>]+>")
-    for feed_url in RSS_FEEDS[:2]:
-        try:
-            req = urllib.request.Request(feed_url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=12) as r:
-                root = ET.fromstring(r.read().decode("utf-8", errors="replace"))
-            for item in list(root.iter("item"))[:3]:
-                t = strip.sub("", item.findtext("title", "")).strip()
-                if t: display_headlines.append(f"• {t}")
-        except:
-            pass
-    if not display_headlines:
-        display_headlines = ["• (news fetch failed)"]
-
-    nifty_str = f"{nifty:.0f} ({fmt(nifty_ret)} vs Apr 1)" if nifty else "N/A"
-    sensex_str = f"{sensex:.0f} ({fmt(sensex_ret)} vs Apr 1)" if sensex else "N/A"
+    # ── Headlines ──
+    news_block = ""
+    for region, lines in display_headlines.items():
+        if lines:
+            flag = {"India": "🇮🇳", "US": "🇺🇸", "Europe": "🇪🇺"}.get(region, "")
+            news_block += f"\n{flag} *{region}*\n" + "\n".join(lines[:2]) + "\n"
 
     msg = (
-        f"📊 *Vest NSE Tracker — {today_str}*\n\n"
-        f"*Nifty 50:* {nifty_str}\n"
-        f"*Sensex:* {sensex_str}\n\n"
-        f"*News-Driven Patterns ({len(active_sectors)} active):*\n"
+        f"📊 *Vest Global Tracker — {today_str}*\n\n"
+        f"*Indices:*\n{index_block}\n\n"
+        f"*News-Driven Patterns ({len(active_sectors)} active):*\n\n"
         + "\n\n".join(pattern_lines)
-        + "\n\n*Today's Headlines:*\n"
-        + "\n".join(display_headlines[:5])
-        + "\n\n_Vest · NSE Tracker · news-adaptive_"
+        + f"\n\n*Headlines:*{news_block}"
+        + "\n_Vest · Global Tracker · news-adaptive_"
     )
 
     print(msg)
     send_telegram(msg)
-    print("Telegram message sent successfully.")
+    print("Sent successfully.")
 
 except Exception as e:
     print(f"ERROR: {e}")
