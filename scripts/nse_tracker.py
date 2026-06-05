@@ -1,5 +1,6 @@
 import urllib.request, json, time, re, xml.etree.ElementTree as ET, os
 from datetime import datetime
+from output_helper import publish, send_telegram_text
 
 TG_TOKEN = os.environ["TG_TOKEN"]
 TG_CHAT_ID = os.environ["TG_CHAT_ID"]
@@ -169,21 +170,9 @@ def score_status(avg, signal):
     else:
         return "🟢" if avg > 5 else ("🟡" if avg > 0 else "🔴")
 
-# ── Telegram ────────────────────────────────────────────────────────────────
-def send_telegram(msg):
-    if len(msg) > 4000:
-        msg = msg[:3990] + "\n…(truncated)"
-    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-    data = json.dumps({"chat_id": TG_CHAT_ID, "text": msg, "parse_mode": "Markdown"}).encode()
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=15) as r:
-        resp = json.loads(r.read())
-    if not resp.get("ok"):
-        raise RuntimeError(f"Telegram error: {resp}")
-
 def send_error(err):
     try:
-        send_telegram(f"⚠️ *Vest Tracker failed*\n```\n{str(err)[:300]}\n```")
+        send_telegram_text(TG_TOKEN, TG_CHAT_ID, f"⚠️ *Vest Tracker failed*\n```\n{str(err)[:300]}\n```")
     except:
         pass
 
@@ -253,17 +242,48 @@ try:
             flag = {"India": "🇮🇳", "US": "🇺🇸", "Europe": "🇪🇺"}.get(region, "")
             news_block += f"\n{flag} *{region}*\n" + "\n".join(lines[:2]) + "\n"
 
-    msg = (
-        f"📊 *Vest Global Tracker — {today_str}*\n\n"
-        f"*Indices:*\n{index_block}\n\n"
-        f"*News-Driven Patterns ({len(active_sectors)} active):*\n\n"
-        + "\n\n".join(pattern_lines)
-        + f"\n\n*Headlines:*{news_block}"
-        + "\n_Vest · Global Tracker · news-adaptive_"
-    )
+    md_content = f"""# Vest Global Market Tracker — {today_str}
 
-    print(msg)
-    send_telegram(msg)
+## Indices
+
+| Index | Price | vs Apr 1 |
+|---|---|---|
+""" + "\n".join(
+        f"| {label} | {prices.get(ticker, 'N/A')} | {fmt(pct(prices.get(ticker), BASELINE.get(ticker)))} |"
+        for ticker, label in [
+            ("^NSEI","🇮🇳 Nifty 50"),("^BSESN","🇮🇳 Sensex"),
+            ("^GSPC","🇺🇸 S&P 500"),("^IXIC","🇺🇸 Nasdaq"),
+            ("^STOXX50E","🇪🇺 Euro Stoxx 50"),("^FTSE","🇬🇧 FTSE 100"),("^GDAXI","🇩🇪 DAX"),
+        ]
+    ) + f"""
+
+## News-Driven Patterns ({len(active_sectors)} active)
+
+""" + "\n\n".join(
+        f"### {s['name']}\n**News triggers:** {', '.join(s.get('hits', []))}\n\n" +
+        "\n".join(
+            f"- **{region}** {' · '.join(t.replace('.NS','').replace('.AS','').replace('.DE','').replace('.PA','').replace('.L','').replace('.SW','') for t in tlist if t)}"
+            for region, tlist in s["tickers"].items() if tlist
+        )
+        for s in active_sectors
+    ) + f"""
+
+## Headlines
+
+""" + "\n".join(
+        f"### {flag} {region}\n" + "\n".join(lines)
+        for region, lines in display_headlines.items()
+        if lines
+        for flag in [{"India":"🇮🇳","US":"🇺🇸","Europe":"🇪🇺"}.get(region,"")]
+    ) + """
+
+---
+_Vest · Global Tracker · news-adaptive_
+"""
+
+    summary = f"📊 Vest Global Tracker {today_str} — {len(active_sectors)} patterns active"
+    print(md_content)
+    publish(TG_TOKEN, TG_CHAT_ID, md_content, "market-tracker", summary)
     print("Sent successfully.")
 
 except Exception as e:

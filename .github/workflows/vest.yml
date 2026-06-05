@@ -8,6 +8,8 @@ on:
 jobs:
   nse-tracker:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -17,10 +19,19 @@ jobs:
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-        run: python scripts/nse_tracker.py
+        run: cd scripts && python nse_tracker.py
+      - name: Commit output
+        run: |
+          git config user.name "vest-bot"
+          git config user.email "vest-bot@users.noreply.github.com"
+          git add output/
+          git diff --cached --quiet || git commit -m "chore: market tracker output $(date -u +%Y-%m-%d)"
+          git push
 
   job-scanner:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -30,4 +41,11 @@ jobs:
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-        run: python scripts/job_scanner.py
+        run: cd scripts && python job_scanner.py
+      - name: Commit output
+        run: |
+          git config user.name "vest-bot"
+          git config user.email "vest-bot@users.noreply.github.com"
+          git add output/
+          git diff --cached --quiet || git commit -m "chore: job scan output $(date -u +%Y-%m-%d)"
+          git push

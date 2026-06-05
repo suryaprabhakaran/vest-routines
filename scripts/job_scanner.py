@@ -1,5 +1,6 @@
-import urllib.request, json, os, time, re, xml.etree.ElementTree as ET
+import urllib.request, urllib.parse, json, os, time, re, xml.etree.ElementTree as ET
 from datetime import datetime
+from output_helper import publish, send_telegram_text
 
 TG_TOKEN = os.environ["TG_TOKEN"]
 TG_CHAT_ID = os.environ["TG_CHAT_ID"]
@@ -62,21 +63,9 @@ def score_job(title, desc):
     neg = sum(1 for kw in NEGATIVE_SIGNALS if kw in text)
     return pos - (neg * 3)
 
-# ── Telegram ────────────────────────────────────────────────────────────────
-def send_telegram(msg):
-    if len(msg) > 4000:
-        msg = msg[:3990] + "\n…(truncated)"
-    url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-    data = json.dumps({"chat_id": TG_CHAT_ID, "text": msg, "parse_mode": "Markdown"}).encode()
-    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=15) as r:
-        resp = json.loads(r.read())
-    if not resp.get("ok"):
-        raise RuntimeError(f"Telegram error: {resp}")
-
 def send_error(err):
     try:
-        send_telegram(f"⚠️ *Vest Job Scanner failed*\n```\n{str(err)[:300]}\n```")
+        send_telegram_text(TG_TOKEN, TG_CHAT_ID, f"⚠️ *Vest Job Scanner failed*\n```\n{str(err)[:300]}\n```")
     except:
         pass
 
@@ -121,17 +110,31 @@ try:
                      "• [Indeed BE](https://be.indeed.com/jobs?q=chief+architect&l=Belgium)\n" \
                      "• [EU Careers](https://eu-careers.europa.eu)"
 
-    msg = (
-        f"💼 *Vest Job Scanner — {today_str}*\n\n"
-        f"*Profile:* Chief Architect / VP Architecture | Belgium | Travel OK\n"
-        f"*Skills:* TOGAF · AWS · Azure · GCP · AI/MLOps · Enterprise Transformation\n\n"
-        f"*Top Matches ({len(top_jobs)} roles):*\n\n"
-        + jobs_block
-        + "\n\n_Vest · Job Scanner · profile-matched_"
-    )
+    md_content = f"""# Vest Job Scanner — {today_str}
 
-    print(msg)
-    send_telegram(msg)
+**Profile:** Chief Architect / VP Architecture | Belgium | Travel OK
+**Skills:** TOGAF · AWS · Azure · GCP · AI/MLOps · Enterprise Transformation
+
+## Top Matches ({len(top_jobs)} roles)
+
+""" + "\n\n".join(
+        f"### {'🟢' if score >= 4 else ('🟡' if score >= 2 else '⚪')} {title}\n- **Query:** {query}\n- **Snippet:** {desc}\n- **Apply:** {url}"
+        for score, title, url, desc, query in top_jobs
+    ) + f"""
+
+## Direct Search Links
+
+- [LinkedIn – Chief Architect TOGAF Belgium](https://www.linkedin.com/jobs/search/?keywords=chief+architect+TOGAF&location=Belgium)
+- [Indeed BE – Chief Architect](https://be.indeed.com/jobs?q=chief+architect+TOGAF&l=Belgium)
+- [EU Careers](https://eu-careers.europa.eu)
+
+---
+_Vest · Job Scanner · profile-matched_
+"""
+
+    summary = f"💼 Vest Job Scanner {today_str} — {len(top_jobs)} matches found"
+    print(md_content)
+    publish(TG_TOKEN, TG_CHAT_ID, md_content, "job-scan", summary)
     print("Sent successfully.")
 
 except Exception as e:
