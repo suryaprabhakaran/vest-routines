@@ -1,5 +1,5 @@
 # 📊 Vest Market Tracker — 2026-06-10
-_Run: 2026-06-10 18:01 UTC_
+_Run: 2026-06-10 21:41 UTC_
 
 ---
 
@@ -14,11 +14,29 @@ _Run: 2026-06-10 18:01 UTC_
 | Index / Asset | Price | vs Apr 1 | |
 |---|---|---|---|
 | 🇮🇳 Nifty 50 | 23,215 | +2.4% | ▲ |
-| 🇺🇸 S&P 500 | 7,320 | +30.4% | ▲ |
+| 🇺🇸 S&P 500 | 7,267 | +29.5% | ▲ |
 | 🇬🇧 FTSE 100 | 10,255 | +19.0% | ▲ |
 | 🇩🇪 DAX | 24,195 | +9.8% | ▲ |
-| 🥇 Gold | $4,131 | +96.7% | ▲ |
-| 🛢️ WTI Crude | $91.5 | +27.9% | ▲ |
+| 🥇 Gold | $4,094 | +95.0% | ▲ |
+| 🛢️ WTI Crude | $91.8 | +28.5% | ▲ |
+
+---
+
+## 📅 What to Watch Tomorrow
+
+### 🗓 Scheduled Events & Calendar
+
+- No major scheduled events identified for tomorrow
+
+### 📡 Price & News Signals
+
+- 🥇 Gold at $4,094 (+95.0% vs baseline) — strong risk-off signal; expect pressure on HDFC Bank, IT exports
+- 🛢️ WTI at $91.8 (+28.5%) — elevated crude; OMC margins under pressure (BPCL, IOC, HINDPETRO)
+- ⚡ Nifty (+2.4%) is underperforming S&P 500 (+29.5%) by 27.1% — watch for FII-driven catch-up or continued divergence
+- 👁 **Defense / Geopolitics** in focus _(news: )_ — Watch HAL, BEL at open — geopolitical news typically has 1-2 day lag on NSE
+- 👁 **Oil & Energy** in focus _(news: )_ — OMC stocks (BPCL, IOC) sensitive to overnight crude moves — check WTI at US close
+- 👁 **Pharma / Healthcare** in focus _(news: )_ — FDA decisions and US pharma moves overnight affect Sunpharma, Cipla at open
+- ⚠️ **Oil & Energy** (BPCL ₹288, +0.6%) stabilising — watch if reversal confirms
 
 ---
 
@@ -39,20 +57,20 @@ _Run: 2026-06-10 18:01 UTC_
 
 | Ticker | Theme | Price | vs Apr 1 | Signal |
 |---|---|---|---|---|
-| LMT | Defense / Geopolitics | $530.05 | +10.8% | 🟢 STRONG BUY |
-| RTX | Defense / Geopolitics | $179.21 | +42.9% | 🟢 STRONG BUY |
+| LMT | Defense / Geopolitics | $525.02 | +9.8% | 🟢 BUY |
+| RTX | Defense / Geopolitics | $177.41 | +41.5% | 🟢 STRONG BUY |
 | AIR | Defense / Geopolitics | $174.96 | +10.7% | 🟢 STRONG BUY |
-| XOM | Oil & Energy | $151.75 | +29.1% | 🟢 STRONG BUY |
-| CVX | Oil & Energy | $191.55 | +22.2% | 🟢 STRONG BUY |
+| XOM | Oil & Energy | $150.62 | +28.2% | 🟢 STRONG BUY |
+| CVX | Oil & Energy | $189.80 | +21.1% | 🟢 STRONG BUY |
 | SHEL | Oil & Energy | p3,239 | +25.5% | 🟢 STRONG BUY |
 | TTE | Oil & Energy | $77.24 | +32.0% | 🟢 STRONG BUY |
-| PFE | Pharma / Healthcare | $25.64 | +3.4% | 🟢 BUY |
-| JNJ | Pharma / Healthcare | $238.59 | +50.2% | 🟢 STRONG BUY |
+| PFE | Pharma / Healthcare | $25.60 | +3.2% | 🟢 BUY |
+| JNJ | Pharma / Healthcare | $238.49 | +50.2% | 🟢 STRONG BUY |
 | NOVN | Pharma / Healthcare | $119.04 | +36.0% | 🟢 STRONG BUY |
 | ROG | Pharma / Healthcare | N/A | N/A | ⚪ NO DATA |
-| NVDA | Tech / AI | $203.16 | +84.7% | 🟢 STRONG BUY |
-| MSFT | Tech / AI | $401.61 | +6.0% | 🟢 BUY |
-| GOOGL | Tech / AI | $356.81 | +115.7% | 🟢 STRONG BUY |
+| NVDA | Tech / AI | $200.42 | +82.2% | 🟢 STRONG BUY |
+| MSFT | Tech / AI | $397.36 | +4.9% | 🟢 BUY |
+| GOOGL | Tech / AI | $356.38 | +115.5% | 🟢 STRONG BUY |
 | ASML | Tech / AI | $1,507.20 | +109.3% | 🟢 STRONG BUY |
 | SAP | Tech / AI | $149.70 | -41.1% | 🔴 STRONG SELL |
 
@@ -60,16 +78,16 @@ _Run: 2026-06-10 18:01 UTC_
 
 | Stock | Price | vs Apr 1 | Signal |
 |---|---|---|---|
-| Apple | $294.07 | +31.8% | 🟢 STRONG BUY |
-| Microsoft | $401.61 | +6.0% | 🟢 BUY |
-| Nvidia | $203.16 | +84.7% | 🟢 STRONG BUY |
-| Alphabet | $356.81 | +115.7% | 🟢 STRONG BUY |
-| Amazon | $238.87 | +21.2% | 🟢 STRONG BUY |
-| Meta | $575.79 | +3.2% | 🟢 BUY |
-| Tesla | $384.62 | +45.1% | 🟢 STRONG BUY |
-| JPMorgan | $312.21 | +31.1% | 🟢 STRONG BUY |
-| ExxonMobil | $151.75 | +29.1% | 🟢 STRONG BUY |
-| Lockheed | $530.05 | +10.8% | 🟢 STRONG BUY |
+| Apple | $291.58 | +30.6% | 🟢 STRONG BUY |
+| Microsoft | $397.36 | +4.9% | 🟢 BUY |
+| Nvidia | $200.42 | +82.2% | 🟢 STRONG BUY |
+| Alphabet | $356.38 | +115.5% | 🟢 STRONG BUY |
+| Amazon | $238.00 | +20.7% | 🟢 STRONG BUY |
+| Meta | $570.98 | +2.3% | 🟡 HOLD |
+| Tesla | $381.59 | +44.0% | 🟢 STRONG BUY |
+| JPMorgan | $309.14 | +29.8% | 🟢 STRONG BUY |
+| ExxonMobil | $150.62 | +28.2% | 🟢 STRONG BUY |
+| Lockheed | $525.02 | +9.8% | 🟢 BUY |
 
 ### 🇪🇺 European Stocks
 
@@ -88,18 +106,9 @@ _Run: 2026-06-10 18:01 UTC_
 
 ---
 
-## 👀 What to Watch Tomorrow
-
-- ⚠️ Gold up >5% from baseline — risk-off move; watch HDFC Bank, IT sector for pressure
-- ⚠️ Crude up >10% — OMC earnings pressure; inflation risk; watch RBI response
-- ⚠️ NVDA up >15% — AI trade running; watch TCS, Infosys for sentiment lift
-- ⚠️ HAL up >10% — defense rerate in play; BEL likely to follow
-
----
-
 ## 📰 News Digest
 
 
 
 ---
-_Vest · Global Market Tracker · news-adaptive · 2026-06-10 18:01 UTC_
+_Vest · Global Market Tracker · news-adaptive · 2026-06-10 21:41 UTC_
