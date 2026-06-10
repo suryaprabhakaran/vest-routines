@@ -109,6 +109,116 @@ RSS_FEEDS = {
 
 STRIP = re.compile(r"<[^>]+>")
 
+# ── Economic calendar ─────────────────────────────────────────────────────────
+CALENDAR_FEEDS = [
+    # ForexFactory economic calendar RSS (high-impact global events)
+    "https://nfs.faireconomy.media/ff_calendar_thisweek.xml",
+    # Investing.com economic calendar RSS
+    "https://www.investing.com/rss/economic_calendar.rss",
+]
+
+# Key event keywords → impact label
+CALENDAR_KEYWORDS = {
+    "fed":         ("🇺🇸 Fed", "interest rate / monetary policy"),
+    "fomc":        ("🇺🇸 FOMC", "US rate decision"),
+    "ecb":         ("🇪🇺 ECB", "European rate decision"),
+    "rbi":         ("🇮🇳 RBI", "India rate decision"),
+    "cpi":         ("📊 CPI", "inflation data"),
+    "gdp":         ("📊 GDP", "growth data"),
+    "nfp":         ("🇺🇸 NFP", "US jobs report"),
+    "payroll":     ("🇺🇸 Payrolls", "US jobs data"),
+    "pmi":         ("📊 PMI", "manufacturing/services activity"),
+    "earnings":    ("💰 Earnings", "corporate results"),
+    "inflation":   ("📊 Inflation", "price data"),
+    "unemployment":("📊 Unemployment", "jobs data"),
+    "trade":       ("📊 Trade Balance", "trade data"),
+    "expiry":      ("⏰ Expiry", "F&O / options expiry"),
+    "opec":        ("🛢️ OPEC", "oil supply decision"),
+    "budget":      ("🇮🇳 Budget", "fiscal policy"),
+    "auction":     ("🏦 Bond Auction", "bond market event"),
+    "powell":      ("🇺🇸 Powell", "Fed chair speech"),
+    "lagarde":     ("🇪🇺 Lagarde", "ECB president speech"),
+}
+
+def fetch_calendar_events():
+    """Fetch tomorrow's key economic events from calendar RSS feeds."""
+    events = []
+    tomorrow_str = (datetime.utcnow().replace(hour=0,minute=0,second=0)
+                    .__class__.__new__(datetime.utcnow().__class__,
+                    *datetime.utcnow().timetuple()[:3])).strftime("%Y-%m-%d")
+    # Simple approach: fetch this week's events and flag high-impact ones
+    for feed_url in CALENDAR_FEEDS:
+        try:
+            req = urllib.request.Request(feed_url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=12) as r:
+                root = ET.fromstring(r.read().decode("utf-8", errors="replace"))
+            for item in list(root.iter("item"))[:30]:
+                title = STRIP.sub("", item.findtext("title","")).strip()
+                desc  = STRIP.sub("", item.findtext("description","")).strip()
+                date  = item.findtext("pubDate","") or item.findtext("date","")
+                if title:
+                    events.append((title, desc[:100], date))
+        except Exception as e:
+            print(f"Calendar feed error {feed_url}: {e}")
+    return events
+
+def build_calendar_watchlist(events, all_text):
+    """
+    Build tomorrow's calendar watchlist from:
+    1. Parsed calendar RSS events (if available)
+    2. Keywords found in today's news that signal upcoming events
+    """
+    watchlist = []
+
+    # From RSS calendar events
+    for title, desc, date in events[:15]:
+        text = (title + " " + desc).lower()
+        for kw, (label, meaning) in CALENDAR_KEYWORDS.items():
+            if kw in text:
+                watchlist.append(f"- {label} **{title.strip()}** — {meaning}")
+                break
+
+    # From today's news — pick up forward-looking signals
+    combined = " ".join(all_text)
+    news_calendar = {
+        "tomorrow":     "Event flagged in today's news as happening tomorrow",
+        "next week":    "Event expected next week — start positioning",
+        "wednesday":    "Mid-week event — check economic calendar",
+        "thursday":     "Thursday event — check economic calendar",
+        "friday":       "End-of-week event — watch for volatility",
+        "quarterly":    "Quarterly results season — earnings risk elevated",
+        "results":      "Earnings results expected — watch for surprise moves",
+        "press conference": "Central bank press conference — volatile session expected",
+        "policy meeting":   "Policy meeting — rate decision risk",
+        "f&o expiry":       "⏰ F&O expiry — expect elevated volatility on NSE",
+        "monthly expiry":   "⏰ Monthly expiry — NSE positions being squared",
+    }
+    for kw, note in news_calendar.items():
+        if kw in combined and not any(kw in w.lower() for w in watchlist):
+            watchlist.append(f"- 📅 _{note}_")
+
+    # Always add standing weekly calendar items based on day of week
+    weekday = datetime.utcnow().weekday()  # 0=Mon … 6=Sun
+    standing = {
+        3: "- ⏰ **Weekly F&O Expiry tomorrow (Thursday)** — NSE volatility typically elevated; watch Nifty options",
+        4: "- 📊 **US markets close early Friday** — liquidity thinner; gap-risk into Monday",
+        6: "- 🌏 **Asian markets open Monday** — set the tone for NSE opening; watch SGX Nifty overnight",
+        0: "- 🌏 **Monday open** — check weekend news for geopolitical or macro surprises",
+    }
+    if weekday in standing:
+        watchlist.append(standing[weekday])
+
+    # Deduplicate and cap
+    seen = set()
+    unique = []
+    for w in watchlist:
+        key = w[:40]
+        if key not in seen:
+            seen.add(key)
+            unique.append(w)
+
+    return unique[:8] if unique else ["- No major scheduled events identified for tomorrow"]
+
 def fetch_news():
     """Returns: all_text (list of lowercase strings), headlines_by_region (dict region→list of titles)"""
     all_text = []
@@ -320,12 +430,15 @@ try:
     today_str = datetime.utcnow().strftime("%Y-%m-%d")
     run_ts    = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
-    # 1. News → active sectors → dynamic NSE patterns
+    # 1. News → active sectors → dynamic NSE patterns + calendar
     print("Fetching news...")
     all_text, headlines_by_region = fetch_news()
     themes = extract_themes(all_text)
     active_sectors = active_global_sectors(all_text)
     nse_patterns = build_nse_patterns(active_sectors)
+    print("Fetching calendar events...")
+    calendar_events = fetch_calendar_events()
+    calendar_watchlist = build_calendar_watchlist(calendar_events, all_text)
     print(f"Active sectors: {[s['name'] for s in active_sectors]}")
     print(f"NSE patterns: {[p['name'] for p in nse_patterns]}")
 
@@ -481,6 +594,12 @@ try:
         f"|---|---|---|---|\n"
         f"{macro_rows}\n\n"
         f"---\n\n"
+        f"## 📅 What to Watch Tomorrow\n\n"
+        f"### 🗓 Scheduled Events & Calendar\n\n"
+        f"{NL.join(calendar_watchlist)}\n\n"
+        f"### 📡 Price & News Signals\n\n"
+        f"{NL.join(watch_signals)}\n\n"
+        f"---\n\n"
         f"## 🟢 NSE Pattern Health — {len(nse_patterns)} patterns today\n\n"
         f"| Pattern | Lead Stock | vs Apr 1 | Status | News Trigger |\n"
         f"|---|---|---|---|---|\n"
@@ -496,9 +615,6 @@ try:
         f"| Stock | Price | vs Apr 1 | Signal |\n"
         f"|---|---|---|---|\n"
         f"{NL.join(eu_rows)}\n\n"
-        f"---\n\n"
-        f"## 👀 What to Watch Tomorrow\n\n"
-        f"{NL.join(watch_signals)}\n\n"
         f"---\n\n"
         f"## 📰 News Digest\n\n"
         f"{news_block}\n\n"
