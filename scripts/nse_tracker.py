@@ -90,23 +90,7 @@ GLOBAL_SECTORS = [
      "signal": "positive"},
 ]
 
-# ── What to Watch signals ────────────────────────────────────────────────────
-WATCH_RULES = [
-    {"condition": lambda p, b: pct(p.get("GC=F"), b.get("GC=F")) and pct(p.get("GC=F"), b.get("GC=F")) > 5,
-     "signal": "Gold up >5% from baseline — risk-off move; watch HDFC Bank, IT sector for pressure"},
-    {"condition": lambda p, b: pct(p.get("CL=F"), b.get("CL=F")) and pct(p.get("CL=F"), b.get("CL=F")) < -10,
-     "signal": "Crude down >10% — OMC (BPCL/IOC) may rally; input cost relief for India"},
-    {"condition": lambda p, b: pct(p.get("CL=F"), b.get("CL=F")) and pct(p.get("CL=F"), b.get("CL=F")) > 10,
-     "signal": "Crude up >10% — OMC earnings pressure; inflation risk; watch RBI response"},
-    {"condition": lambda p, b: pct(p.get("^NSEI"), b.get("^NSEI")) and pct(p.get("^NSEI"), b.get("^NSEI")) < -5,
-     "signal": "Nifty down >5% from baseline — watch for FII selling; support at 21500"},
-    {"condition": lambda p, b: pct(p.get("^GSPC"), b.get("^GSPC")) and pct(p.get("^GSPC"), b.get("^GSPC")) < -5,
-     "signal": "S&P 500 down >5% — global risk-off; expect Nifty gap-down tomorrow"},
-    {"condition": lambda p, b: pct(p.get("NVDA"), b.get("NVDA")) and pct(p.get("NVDA"), b.get("NVDA")) > 15,
-     "signal": "NVDA up >15% — AI trade running; watch TCS, Infosys for sentiment lift"},
-    {"condition": lambda p, b: pct(p.get("HAL.NS"), b.get("HAL.NS")) and pct(p.get("HAL.NS"), b.get("HAL.NS")) > 10,
-     "signal": "HAL up >10% — defense rerate in play; BEL likely to follow"},
-]
+# WATCH_RULES replaced by dynamic build_watch_signals() below
 
 # ── News ─────────────────────────────────────────────────────────────────────
 RSS_FEEDS = {
@@ -223,6 +207,107 @@ def pattern_status(avg, signal):
         if avg >  5: return ("🟢", "RUNNING")
         if avg >  0: return ("🟡", "FADING")
         return ("🔴", "BROKEN")
+
+def build_watch_signals(prices, active_sectors, themes, nse_patterns):
+    """
+    Build tomorrow's watch signals fully from today's live data:
+    - Actual price moves (what moved the most today)
+    - Active news themes (what's dominating headlines)
+    - Pattern health (what's breaking out or breaking down)
+    - Cross-market spillover logic (US close → India open)
+    """
+    signals = []
+
+    # ── 1. Biggest movers today (top 3 by absolute % vs baseline) ──────────
+    movers = []
+    for ticker, p_val in prices.items():
+        r = pct(p_val, BASELINE.get(ticker))
+        if r is not None and ticker not in ("GC=F","CL=F"):
+            name = ticker.replace(".NS","").replace(".AS","").replace(".DE","").replace(".PA","").replace(".L","").replace(".SW","")
+            movers.append((abs(r), r, name, ticker))
+    movers.sort(reverse=True)
+    for _, r, name, ticker in movers[:3]:
+        direction = f"up {r:+.1f}%" if r > 0 else f"down {r:.1f}%"
+        if ticker.endswith(".NS"):
+            signals.append(f"- 📈 **{name}** is {direction} vs Apr 1 baseline — watch for continuation or mean-reversion at open")
+        elif ticker in ("^GSPC","^IXIC","^DJI"):
+            nifty_r = pct(prices.get("^NSEI"), BASELINE.get("^NSEI"))
+            lag = "lagging" if nifty_r and abs(nifty_r) < abs(r)/2 else "tracking"
+            signals.append(f"- 🌐 **{name}** {direction} — Nifty is {lag}; watch for catch-up at tomorrow's open")
+        elif ticker in ("^FTSE","^GDAXI","^STOXX50E"):
+            signals.append(f"- 🇪🇺 **{name}** {direction} — European sentiment may carry into Asian open")
+
+    # ── 2. Macro cross-signals (Gold, Crude — with actual values) ──────────
+    gold_r  = pct(prices.get("GC=F"),  BASELINE.get("GC=F"))
+    crude_r = pct(prices.get("CL=F"),  BASELINE.get("CL=F"))
+    sp_r    = pct(prices.get("^GSPC"), BASELINE.get("^GSPC"))
+    nsei_r  = pct(prices.get("^NSEI"), BASELINE.get("^NSEI"))
+
+    if gold_r is not None:
+        gold_p = prices.get("GC=F")
+        if gold_r > 8:
+            signals.append(f"- 🥇 Gold at ${gold_p:,.0f} ({gold_r:+.1f}% vs baseline) — strong risk-off signal; expect pressure on HDFC Bank, IT exports")
+        elif gold_r > 3:
+            signals.append(f"- 🥇 Gold at ${gold_p:,.0f} ({gold_r:+.1f}%) — mild risk-off; monitor FII flows into India")
+        elif gold_r < -5:
+            signals.append(f"- 🥇 Gold at ${gold_p:,.0f} ({gold_r:.1f}%) — risk-on; equities may see follow-through buying")
+
+    if crude_r is not None:
+        crude_p = prices.get("CL=F")
+        if crude_r > 10:
+            signals.append(f"- 🛢️ WTI at ${crude_p:.1f} ({crude_r:+.1f}%) — elevated crude; OMC margins under pressure (BPCL, IOC, HINDPETRO)")
+        elif crude_r < -10:
+            signals.append(f"- 🛢️ WTI at ${crude_p:.1f} ({crude_r:.1f}%) — crude falling; OMC input cost relief; watch BPCL, IOC for rally")
+        elif -5 < crude_r < 5:
+            signals.append(f"- 🛢️ WTI at ${crude_p:.1f} ({crude_r:+.1f}%) — crude stable; no OMC disruption expected")
+
+    if sp_r is not None and nsei_r is not None:
+        spread = nsei_r - sp_r
+        if spread < -5:
+            signals.append(f"- ⚡ Nifty ({nsei_r:+.1f}%) is underperforming S&P 500 ({sp_r:+.1f}%) by {abs(spread):.1f}% — watch for FII-driven catch-up or continued divergence")
+        elif spread > 5:
+            signals.append(f"- ⚡ Nifty ({nsei_r:+.1f}%) is outperforming S&P 500 ({sp_r:+.1f}%) by {spread:.1f}% — domestic-led rally; watch sustainability")
+
+    # ── 3. News theme spillovers (what today's headlines mean for tomorrow) ─
+    theme_watchlist = {
+        "Defense / Geopolitics": "Watch HAL, BEL at open — geopolitical news typically has 1-2 day lag on NSE",
+        "Oil & Energy":          "OMC stocks (BPCL, IOC) sensitive to overnight crude moves — check WTI at US close",
+        "Tech / AI":             "TCS, Infosys follow NASDAQ sentiment — US tech close sets tomorrow's NSE IT direction",
+        "Banking & Rates":       "Monitor RBI commentary and bond yields — HDFC Bank, ICICI key bellwethers",
+        "Pharma / Healthcare":   "FDA decisions and US pharma moves overnight affect Sunpharma, Cipla at open",
+        "Safe Haven / Gold":     "Gold and MCX move inversely to risk appetite — elevated gold = defensive posture",
+        "Consumer / FMCG":       "Monsoon and rural data are key catalysts for HUL, ITC this season",
+        "Auto / EV":             "Maruti tracks vehicle sales data closely — monthly SIAM numbers are the trigger",
+        "Trade / Macro":         "Dollar-Rupee move overnight directly impacts IT exporters and import-heavy sectors",
+        "Telecom":               "Spectrum policy and ARPU data drive Airtel — watch for regulatory updates",
+        "Power / Renewables":    "Tata Power tracks coal prices and renewable policy — Budget allocations key",
+        "PSU / Government Spend":"HAL, BEL, PSU banks linked to defence budget and capex announcements",
+    }
+    for s in active_sectors[:3]:
+        watch_txt = theme_watchlist.get(s["name"])
+        if watch_txt:
+            triggers = ", ".join(s.get("hits", []))
+            signals.append(f"- 👁 **{s['name']}** in focus _(news: {triggers})_ — {watch_txt}")
+
+    # ── 4. Pattern health alerts (what's about to break) ───────────────────
+    for p in nse_patterns:
+        rets = [pct(prices.get(t), BASELINE.get(t)) for t in p["tickers"] if prices.get(t) and BASELINE.get(t)]
+        avg = sum(rets)/len(rets) if rets else None
+        if avg is None:
+            continue
+        lead = p["tickers"][0]
+        name = lead.replace(".NS","")
+        lp   = prices.get(lead)
+        price_disp = f"₹{lp:.0f}" if lp else ""
+        if p["signal"] == "positive" and -1 < avg < 2:
+            signals.append(f"- ⚠️ **{p['name']}** ({name} {price_disp}, {avg:+.1f}%) is at breakout-or-fade zone — decisive move expected")
+        elif p["signal"] == "negative" and -2 < avg < 1:
+            signals.append(f"- ⚠️ **{p['name']}** ({name} {price_disp}, {avg:+.1f}%) stabilising — watch if reversal confirms")
+
+    if not signals:
+        signals = ["- No strong directional signals today — range-bound open expected"]
+
+    return signals[:8]  # cap at 8 to keep report readable
 
 def send_error(err):
     try:
@@ -362,19 +447,8 @@ try:
     # Fixed EU stocks table
     eu_rows   = [stock_row(t, label) for t, label in EU_STOCKS]
 
-    # ── Section 5: What to Watch Tomorrow ──────────────────────────────────
-    watch_signals = []
-    for rule in WATCH_RULES:
-        try:
-            if rule["condition"](prices, BASELINE):
-                watch_signals.append(f"- ⚠️ {rule['signal']}")
-        except:
-            pass
-    # Always add a news-derived watch signal
-    for _, name, hits in themes[:2]:
-        watch_signals.append(f"- 👁 **{name}** in focus — monitor related stocks at open")
-    if not watch_signals:
-        watch_signals = ["- No major alerts — steady market conditions"]
+    # ── Section 5: What to Watch Tomorrow (fully dynamic) ──────────────────
+    watch_signals = build_watch_signals(prices, active_sectors, themes, nse_patterns)
 
     # ── Section 6: News Digest ─────────────────────────────────────────────
     flag = {"IN": "🇮🇳", "US": "🇺🇸", "EU": "🇪🇺"}
