@@ -433,19 +433,28 @@ def fetch_equitypandit():
             f"?search={urllib.request.quote(search)}&per_page={count}"
             "&_fields=date,link,title,excerpt,content"
         )
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
-        with urllib.request.urlopen(req, timeout=12) as r:
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+            "Referer": "https://www.equitypandit.com/",
+            "Accept-Language": "en-US,en;q=0.9",
+        })
+        with urllib.request.urlopen(req, timeout=15) as r:
             return json.loads(r.read())
 
     def clean(html):
         return SPACE.sub(" ", CLEAN.sub(" ", html)).strip()
 
+    PRED_URL = "https://www.equitypandit.com/prediction/"
+    GN_URL   = "https://www.equitypandit.com/giftnifty/"
     prediction_lines = []
     giftnifty_lines  = []
 
     # ── Prediction posts ────────────────────────────────────────────────────
     try:
         posts = wp_posts("nifty prediction market", count=3)
+        if not posts:
+            raise ValueError("empty response")
         for p in posts:
             title   = clean(p["title"]["rendered"])
             excerpt = clean(p.get("excerpt", {}).get("rendered", ""))[:220]
@@ -455,28 +464,29 @@ def fetch_equitypandit():
             if excerpt:
                 prediction_lines.append(f"  > {excerpt}")
     except Exception as e:
-        prediction_lines.append(f"- _Prediction fetch error: {e}_")
+        prediction_lines.append(
+            f"- _Data unavailable ({str(e)[:60]}) — [View predictions]({PRED_URL})_"
+        )
 
     # ── GiftNifty / Overnight posts ─────────────────────────────────────────
     try:
         posts = wp_posts("overnight stock market gift nifty", count=1)
         if not posts:
             posts = wp_posts("gift nifty sgx", count=1)
+        if not posts:
+            raise ValueError("empty response")
         for p in posts:
             title   = clean(p["title"]["rendered"])
             date    = p["date"][:10]
             link    = p["link"]
-            # Extract Gift Nifty numeric level from content
             content = clean(p.get("content", {}).get("rendered", ""))
             giftnifty_lines.append(f"- **[{title}]({link})** _{date}_")
-            # Try to extract key GiftNifty numbers
             gn_match = re.search(
                 r'[Gg]ift\s*[Nn]ifty[^.]{0,80}?(\d{4,6}(?:\.\d+)?)',
                 content
             )
             if gn_match:
                 giftnifty_lines.append(f"  > Gift Nifty level: **{gn_match.group(1)}**")
-            # Grab the first 2-3 sentences with Nifty/Sensex context
             sentences = re.split(r'(?<=[.!?])\s+', content)
             context_sents = [s for s in sentences if any(
                 kw in s.lower() for kw in ["nifty","sensex","gift","sgx","open"]
@@ -484,7 +494,9 @@ def fetch_equitypandit():
             if context_sents:
                 giftnifty_lines.append(f"  > {' '.join(context_sents)[:300]}")
     except Exception as e:
-        giftnifty_lines.append(f"- _GiftNifty fetch error: {e}_")
+        giftnifty_lines.append(
+            f"- _Data unavailable ({str(e)[:60]}) — [View GIFT Nifty]({GN_URL})_"
+        )
 
     return prediction_lines, giftnifty_lines
 
