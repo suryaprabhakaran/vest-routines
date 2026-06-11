@@ -419,6 +419,76 @@ def build_watch_signals(prices, active_sectors, themes, nse_patterns):
 
     return signals[:8]  # cap at 8 to keep report readable
 
+def fetch_equitypandit():
+    """
+    Fetch EquityPandit prediction and GiftNifty data via WP REST API.
+    Returns (prediction_lines, giftnifty_lines) — lists of markdown bullet strings.
+    """
+    CLEAN = re.compile(r"<[^>]+>")
+    SPACE = re.compile(r"\s+")
+
+    def wp_posts(search, count=2):
+        url = (
+            "https://www.equitypandit.com/wp-json/wp/v2/posts"
+            f"?search={urllib.request.quote(search)}&per_page={count}"
+            "&_fields=date,link,title,excerpt,content"
+        )
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=12) as r:
+            return json.loads(r.read())
+
+    def clean(html):
+        return SPACE.sub(" ", CLEAN.sub(" ", html)).strip()
+
+    prediction_lines = []
+    giftnifty_lines  = []
+
+    # ── Prediction posts ────────────────────────────────────────────────────
+    try:
+        posts = wp_posts("nifty prediction market", count=3)
+        for p in posts:
+            title   = clean(p["title"]["rendered"])
+            excerpt = clean(p.get("excerpt", {}).get("rendered", ""))[:220]
+            date    = p["date"][:10]
+            link    = p["link"]
+            prediction_lines.append(f"- **[{title}]({link})** _{date}_")
+            if excerpt:
+                prediction_lines.append(f"  > {excerpt}")
+    except Exception as e:
+        prediction_lines.append(f"- _Prediction fetch error: {e}_")
+
+    # ── GiftNifty / Overnight posts ─────────────────────────────────────────
+    try:
+        posts = wp_posts("overnight stock market gift nifty", count=1)
+        if not posts:
+            posts = wp_posts("gift nifty sgx", count=1)
+        for p in posts:
+            title   = clean(p["title"]["rendered"])
+            date    = p["date"][:10]
+            link    = p["link"]
+            # Extract Gift Nifty numeric level from content
+            content = clean(p.get("content", {}).get("rendered", ""))
+            giftnifty_lines.append(f"- **[{title}]({link})** _{date}_")
+            # Try to extract key GiftNifty numbers
+            gn_match = re.search(
+                r'[Gg]ift\s*[Nn]ifty[^.]{0,80}?(\d{4,6}(?:\.\d+)?)',
+                content
+            )
+            if gn_match:
+                giftnifty_lines.append(f"  > Gift Nifty level: **{gn_match.group(1)}**")
+            # Grab the first 2-3 sentences with Nifty/Sensex context
+            sentences = re.split(r'(?<=[.!?])\s+', content)
+            context_sents = [s for s in sentences if any(
+                kw in s.lower() for kw in ["nifty","sensex","gift","sgx","open"]
+            )][:3]
+            if context_sents:
+                giftnifty_lines.append(f"  > {' '.join(context_sents)[:300]}")
+    except Exception as e:
+        giftnifty_lines.append(f"- _GiftNifty fetch error: {e}_")
+
+    return prediction_lines, giftnifty_lines
+
+
 def send_error(err):
     try:
         send_telegram_text(TG_TOKEN, TG_CHAT_ID, f"⚠️ *Vest Tracker failed*\n```\n{str(err)[:300]}\n```")
@@ -560,7 +630,11 @@ try:
     # Fixed EU stocks table
     eu_rows   = [stock_row(t, label) for t, label in EU_STOCKS]
 
-    # ── Section 5: What to Watch Tomorrow (fully dynamic) ──────────────────
+    # ── Section 5: EquityPandit Predictions ────────────────────────────────
+    print("Fetching EquityPandit predictions...")
+    ep_prediction_lines, ep_giftnifty_lines = fetch_equitypandit()
+
+    # ── Section 6: What to Watch Tomorrow (fully dynamic) ──────────────────
     watch_signals = build_watch_signals(prices, active_sectors, themes, nse_patterns)
 
     # ── Section 6: News Digest ─────────────────────────────────────────────
@@ -615,6 +689,14 @@ try:
         f"| Stock | Price | vs Apr 1 | Signal |\n"
         f"|---|---|---|---|\n"
         f"{NL.join(eu_rows)}\n\n"
+        f"---\n\n"
+        f"## 🎯 EquityPandit Predictions\n\n"
+        f"### 📈 Market Predictions\n\n"
+        f"_Source: [equitypandit.com/prediction](https://www.equitypandit.com/prediction/)_\n\n"
+        f"{NL.join(ep_prediction_lines)}\n\n"
+        f"### 🌏 GIFT Nifty (SGX Nifty)\n\n"
+        f"_Source: [equitypandit.com/giftnifty](https://www.equitypandit.com/giftnifty/)_\n\n"
+        f"{NL.join(ep_giftnifty_lines)}\n\n"
         f"---\n\n"
         f"## 📰 News Digest\n\n"
         f"{news_block}\n\n"
