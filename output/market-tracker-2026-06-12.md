@@ -1,5 +1,5 @@
 # 📊 Vest Market Tracker — 2026-06-12
-_Run: 2026-06-12 10:04 UTC_
+_Run: 2026-06-12 18:00 UTC_
 
 ---
 
@@ -14,11 +14,11 @@ _Run: 2026-06-12 10:04 UTC_
 | Index / Asset | Price | vs Apr 1 | |
 |---|---|---|---|
 | 🇮🇳 Nifty 50 | 23,623 | +4.2% | ▲ |
-| 🇺🇸 S&P 500 | 7,394 | +31.8% | ▲ |
-| 🇬🇧 FTSE 100 | 10,428 | +21.1% | ▲ |
-| 🇩🇪 DAX | 24,654 | +11.9% | ▲ |
-| 🥇 Gold | $4,245 | +102.1% | ▲ |
-| 🛢️ WTI Crude | $84.0 | +17.5% | ▲ |
+| 🇺🇸 S&P 500 | 7,426 | +32.3% | ▲ |
+| 🇬🇧 FTSE 100 | 10,472 | +21.6% | ▲ |
+| 🇩🇪 DAX | 24,635 | +11.8% | ▲ |
+| 🥇 Gold | $4,244 | +102.1% | ▲ |
+| 🛢️ WTI Crude | $84.7 | +18.4% | ▲ |
 
 ---
 
@@ -30,9 +30,9 @@ _Run: 2026-06-12 10:04 UTC_
 
 ### 📡 Price & News Signals
 
-- 🥇 Gold at $4,245 (+102.1% vs baseline) — strong risk-off signal; expect pressure on HDFC Bank, IT exports
-- 🛢️ WTI at $84.0 (+17.5%) — elevated crude; OMC margins under pressure (BPCL, IOC, HINDPETRO)
-- ⚡ Nifty (+4.2%) is underperforming S&P 500 (+31.8%) by 27.6% — watch for FII-driven catch-up or continued divergence
+- 🥇 Gold at $4,244 (+102.1% vs baseline) — strong risk-off signal; expect pressure on HDFC Bank, IT exports
+- 🛢️ WTI at $84.7 (+18.4%) — elevated crude; OMC margins under pressure (BPCL, IOC, HINDPETRO)
+- ⚡ Nifty (+4.2%) is underperforming S&P 500 (+32.3%) by 28.2% — watch for FII-driven catch-up or continued divergence
 - 👁 **Defense / Geopolitics** in focus _(news: )_ — Watch HAL, BEL at open — geopolitical news typically has 1-2 day lag on NSE
 - 👁 **Oil & Energy** in focus _(news: )_ — OMC stocks (BPCL, IOC) sensitive to overnight crude moves — check WTI at US close
 - 👁 **Pharma / Healthcare** in focus _(news: )_ — FDA decisions and US pharma moves overnight affect Sunpharma, Cipla at open
@@ -56,52 +56,52 @@ _Run: 2026-06-12 10:04 UTC_
 
 | Ticker | Theme | Price | vs Apr 1 | Signal |
 |---|---|---|---|---|
-| LMT | Defense / Geopolitics | $548.68 | +14.7% | 🟢 STRONG BUY |
-| RTX | Defense / Geopolitics | $184.21 | +46.9% | 🟢 STRONG BUY |
-| AIR | Defense / Geopolitics | $181.68 | +15.0% | 🟢 STRONG BUY |
-| XOM | Oil & Energy | $146.60 | +24.8% | 🟢 STRONG BUY |
-| CVX | Oil & Energy | $185.82 | +18.6% | 🟢 STRONG BUY |
-| SHEL | Oil & Energy | p3,159 | +22.4% | 🟢 STRONG BUY |
-| TTE | Oil & Energy | $74.87 | +28.0% | 🟢 STRONG BUY |
+| LMT | Defense / Geopolitics | $539.10 | +12.7% | 🟢 STRONG BUY |
+| RTX | Defense / Geopolitics | $183.93 | +46.7% | 🟢 STRONG BUY |
+| AIR | Defense / Geopolitics | $179.28 | +13.5% | 🟢 STRONG BUY |
+| XOM | Oil & Energy | $147.48 | +25.5% | 🟢 STRONG BUY |
+| CVX | Oil & Energy | $187.48 | +19.6% | 🟢 STRONG BUY |
+| SHEL | Oil & Energy | p3,220 | +24.8% | 🟢 STRONG BUY |
+| TTE | Oil & Energy | $76.38 | +30.6% | 🟢 STRONG BUY |
 | PFE | Pharma / Healthcare | $26.17 | +5.5% | 🟢 BUY |
-| JNJ | Pharma / Healthcare | $238.33 | +50.1% | 🟢 STRONG BUY |
-| NOVN | Pharma / Healthcare | $122.30 | +39.8% | 🟢 STRONG BUY |
+| JNJ | Pharma / Healthcare | $240.18 | +51.2% | 🟢 STRONG BUY |
+| NOVN | Pharma / Healthcare | $122.08 | +39.5% | 🟢 STRONG BUY |
 | ROG | Pharma / Healthcare | N/A | N/A | ⚪ NO DATA |
-| NVDA | Tech / AI | $204.87 | +86.2% | 🟢 STRONG BUY |
-| MSFT | Tech / AI | $390.34 | +3.0% | 🟢 BUY |
-| GOOGL | Tech / AI | $357.77 | +116.3% | 🟢 STRONG BUY |
-| ASML | Tech / AI | $1,608.00 | +123.3% | 🟢 STRONG BUY |
-| SAP | Tech / AI | $141.68 | -44.2% | 🔴 STRONG SELL |
+| NVDA | Tech / AI | $205.04 | +86.4% | 🟢 STRONG BUY |
+| MSFT | Tech / AI | $386.87 | +2.1% | 🟡 HOLD |
+| GOOGL | Tech / AI | $361.53 | +118.6% | 🟢 STRONG BUY |
+| ASML | Tech / AI | $1,629.60 | +126.3% | 🟢 STRONG BUY |
+| SAP | Tech / AI | $140.26 | -44.8% | 🔴 STRONG SELL |
 
 ### 🇺🇸 US Stocks
 
 | Stock | Price | vs Apr 1 | Signal |
 |---|---|---|---|
-| Apple | $295.63 | +32.5% | 🟢 STRONG BUY |
-| Microsoft | $390.34 | +3.0% | 🟢 BUY |
-| Nvidia | $204.87 | +86.2% | 🟢 STRONG BUY |
-| Alphabet | $357.77 | +116.3% | 🟢 STRONG BUY |
-| Amazon | $241.51 | +22.5% | 🟢 STRONG BUY |
-| Meta | $568.43 | +1.8% | 🟡 HOLD |
-| Tesla | $399.15 | +50.6% | 🟢 STRONG BUY |
-| JPMorgan | $313.49 | +31.6% | 🟢 STRONG BUY |
-| ExxonMobil | $146.60 | +24.8% | 🟢 STRONG BUY |
-| Lockheed | $548.68 | +14.7% | 🟢 STRONG BUY |
+| Apple | $290.00 | +29.9% | 🟢 STRONG BUY |
+| Microsoft | $386.87 | +2.1% | 🟡 HOLD |
+| Nvidia | $205.04 | +86.4% | 🟢 STRONG BUY |
+| Alphabet | $361.53 | +118.6% | 🟢 STRONG BUY |
+| Amazon | $236.50 | +20.0% | 🟢 STRONG BUY |
+| Meta | $566.71 | +1.5% | 🟡 HOLD |
+| Tesla | $402.75 | +52.0% | 🟢 STRONG BUY |
+| JPMorgan | $319.46 | +34.1% | 🟢 STRONG BUY |
+| ExxonMobil | $147.48 | +25.5% | 🟢 STRONG BUY |
+| Lockheed | $539.10 | +12.7% | 🟢 STRONG BUY |
 
 ### 🇪🇺 European Stocks
 
 | Stock | Price | vs Apr 1 | Signal |
 |---|---|---|---|
-| ASML | $1,608.00 | +123.3% | 🟢 STRONG BUY |
-| SAP | $141.68 | -44.2% | 🔴 STRONG SELL |
-| Siemens | $267.50 | +24.4% | 🟢 STRONG BUY |
-| Airbus | $181.68 | +15.0% | 🟢 STRONG BUY |
-| LVMH | $518.70 | -23.7% | 🔴 STRONG SELL |
-| Shell | p3,159 | +22.4% | 🟢 STRONG BUY |
-| Novartis | $122.30 | +39.8% | 🟢 STRONG BUY |
+| ASML | $1,629.60 | +126.3% | 🟢 STRONG BUY |
+| SAP | $140.26 | -44.8% | 🔴 STRONG SELL |
+| Siemens | $264.50 | +23.0% | 🟢 STRONG BUY |
+| Airbus | $179.28 | +13.5% | 🟢 STRONG BUY |
+| LVMH | $510.60 | -24.9% | 🔴 STRONG SELL |
+| Shell | p3,220 | +24.8% | 🟢 STRONG BUY |
+| Novartis | $122.08 | +39.5% | 🟢 STRONG BUY |
 | Roche | N/A | N/A | ⚪ NO DATA |
-| Barclays | p470 | +69.2% | 🟢 STRONG BUY |
-| HSBC | p1,370 | +75.2% | 🟢 STRONG BUY |
+| Barclays | p473 | +70.1% | 🟢 STRONG BUY |
+| HSBC | p1,373 | +75.5% | 🟢 STRONG BUY |
 
 ---
 
@@ -126,4 +126,4 @@ _Source: [equitypandit.com/giftnifty](https://www.equitypandit.com/giftnifty/)_
 
 
 ---
-_Vest · Global Market Tracker · news-adaptive · 2026-06-12 10:04 UTC_
+_Vest · Global Market Tracker · news-adaptive · 2026-06-12 18:00 UTC_
