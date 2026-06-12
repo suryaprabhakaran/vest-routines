@@ -421,82 +421,75 @@ def build_watch_signals(prices, active_sectors, themes, nse_patterns):
 
 def fetch_equitypandit():
     """
-    Fetch EquityPandit prediction and GiftNifty data via WP REST API.
+    Fetch EquityPandit data via RSS (works from all IPs including GitHub Actions).
     Returns (prediction_lines, giftnifty_lines) — lists of markdown bullet strings.
     """
     CLEAN = re.compile(r"<[^>]+>")
     SPACE = re.compile(r"\s+")
-
-    def wp_posts(search, count=2):
-        url = (
-            "https://www.equitypandit.com/wp-json/wp/v2/posts"
-            f"?search={urllib.request.quote(search)}&per_page={count}"
-            "&_fields=date,link,title,excerpt,content"
-        )
-        req = urllib.request.Request(url, headers={
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "application/json, text/plain, */*",
-            "Referer": "https://www.equitypandit.com/",
-            "Accept-Language": "en-US,en;q=0.9",
-        })
-        with urllib.request.urlopen(req, timeout=15) as r:
-            return json.loads(r.read())
+    PRED_URL = "https://www.equitypandit.com/prediction/"
+    GN_URL   = "https://www.equitypandit.com/giftnifty/"
 
     def clean(html):
         return SPACE.sub(" ", CLEAN.sub(" ", html)).strip()
 
-    PRED_URL = "https://www.equitypandit.com/prediction/"
-    GN_URL   = "https://www.equitypandit.com/giftnifty/"
+    def rss_items(url, max_items=10):
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=12) as r:
+            root = ET.fromstring(r.read().decode("utf-8", errors="replace"))
+        items = []
+        for item in list(root.iter("item"))[:max_items]:
+            title = clean(item.findtext("title", ""))
+            link  = item.findtext("link", "").strip()
+            date  = item.findtext("pubDate", "")[:16].strip()
+            desc  = clean(item.findtext("description", ""))
+            items.append((title, link, date, desc))
+        return items
+
     prediction_lines = []
     giftnifty_lines  = []
 
-    # ── Prediction posts ────────────────────────────────────────────────────
     try:
-        posts = wp_posts("nifty prediction market", count=3)
-        if not posts:
-            raise ValueError("empty response")
-        for p in posts:
-            title   = clean(p["title"]["rendered"])
-            excerpt = clean(p.get("excerpt", {}).get("rendered", ""))[:220]
-            date    = p["date"][:10]
-            link    = p["link"]
-            prediction_lines.append(f"- **[{title}]({link})** _{date}_")
-            if excerpt:
-                prediction_lines.append(f"  > {excerpt}")
-    except Exception as e:
-        prediction_lines.append(
-            f"- _Data unavailable ({str(e)[:60]}) — [View predictions]({PRED_URL})_"
-        )
+        all_items = rss_items("https://www.equitypandit.com/feed/", max_items=15)
 
-    # ── GiftNifty / Overnight posts ─────────────────────────────────────────
-    try:
-        posts = wp_posts("overnight stock market gift nifty", count=1)
-        if not posts:
-            posts = wp_posts("gift nifty sgx", count=1)
-        if not posts:
-            raise ValueError("empty response")
-        for p in posts:
-            title   = clean(p["title"]["rendered"])
-            date    = p["date"][:10]
-            link    = p["link"]
-            content = clean(p.get("content", {}).get("rendered", ""))
+        # ── Prediction posts: market rally / prediction articles ────────────
+        pred_keywords = ["rally","prediction","nifty","sensex","market","outlook","analysis"]
+        pred_posts = [
+            (t, l, d, desc) for t, l, d, desc in all_items
+            if any(kw in (t + desc).lower() for kw in pred_keywords)
+            and "overnight" not in t.lower()
+        ][:3]
+
+        for title, link, date, desc in pred_posts:
+            prediction_lines.append(f"- **[{title}]({link})** _{date}_")
+            if desc:
+                prediction_lines.append(f"  > {desc[:220]}")
+
+        if not prediction_lines:
+            prediction_lines.append(f"- _No prediction articles today — [View predictions]({PRED_URL})_")
+
+        # ── GiftNifty: overnight market movements post ──────────────────────
+        gn_posts = [
+            (t, l, d, desc) for t, l, d, desc in all_items
+            if "overnight" in t.lower() or "gift nifty" in (t + desc).lower()
+        ][:1]
+
+        for title, link, date, desc in gn_posts:
             giftnifty_lines.append(f"- **[{title}]({link})** _{date}_")
             gn_match = re.search(
-                r'[Gg]ift\s*[Nn]ifty[^.]{0,80}?(\d{4,6}(?:\.\d+)?)',
-                content
+                r'[Gg]ift\s*[Nn]ifty[^.]{0,80}?(\d{2,3},\d{3}|\d{4,6})(?:\.\d+)?',
+                desc
             )
             if gn_match:
                 giftnifty_lines.append(f"  > Gift Nifty level: **{gn_match.group(1)}**")
-            sentences = re.split(r'(?<=[.!?])\s+', content)
-            context_sents = [s for s in sentences if any(
-                kw in s.lower() for kw in ["nifty","sensex","gift","sgx","open"]
-            )][:3]
-            if context_sents:
-                giftnifty_lines.append(f"  > {' '.join(context_sents)[:300]}")
+            if desc:
+                giftnifty_lines.append(f"  > {desc[:300]}")
+
+        if not giftnifty_lines:
+            giftnifty_lines.append(f"- _No overnight report today — [View GIFT Nifty]({GN_URL})_")
+
     except Exception as e:
-        giftnifty_lines.append(
-            f"- _Data unavailable ({str(e)[:60]}) — [View GIFT Nifty]({GN_URL})_"
-        )
+        prediction_lines.append(f"- _Feed unavailable ({str(e)[:60]}) — [View predictions]({PRED_URL})_")
+        giftnifty_lines.append(f"- _Feed unavailable — [View GIFT Nifty]({GN_URL})_")
 
     return prediction_lines, giftnifty_lines
 
