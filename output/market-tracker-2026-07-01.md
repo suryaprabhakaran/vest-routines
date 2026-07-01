@@ -1,5 +1,5 @@
 # 📊 Vest Market Tracker — 2026-07-01
-_Run: 2026-07-01 13:07 UTC_
+_Run: 2026-07-01 13:12 UTC_
 
 ---
 
@@ -19,10 +19,10 @@ _Run: 2026-07-01 13:07 UTC_
 |---|---|---|---|
 | 🇮🇳 Nifty 50 | 24,006 | +5.8% | ▲ |
 | 🇺🇸 S&P 500 | 7,499 | +33.6% | ▲ |
-| 🇬🇧 FTSE 100 | 10,453 | +21.3% | ▲ |
-| 🇩🇪 DAX | 24,981 | +13.4% | ▲ |
-| 🥇 Gold | $4,040 | +92.4% | ▲ |
-| 🛢️ WTI Crude | $68.8 | -3.7% | ▼ |
+| 🇬🇧 FTSE 100 | 10,444 | +21.2% | ▲ |
+| 🇩🇪 DAX | 24,955 | +13.3% | ▲ |
+| 🥇 Gold | $4,033 | +92.0% | ▲ |
+| 🛢️ WTI Crude | $69.0 | -3.4% | ▼ |
 
 ---
 
@@ -34,8 +34,8 @@ _Run: 2026-07-01 13:07 UTC_
 
 ### 📡 Price & News Signals
 
-- 🥇 Gold at $4,040 (+92.4% vs baseline) — strong risk-off signal; expect pressure on HDFC Bank, IT exports
-- 🛢️ WTI at $68.8 (-3.7%) — crude stable; no OMC disruption expected
+- 🥇 Gold at $4,033 (+92.0% vs baseline) — strong risk-off signal; expect pressure on HDFC Bank, IT exports
+- 🛢️ WTI at $69.0 (-3.4%) — crude stable; no OMC disruption expected
 - ⚡ Nifty (+5.8%) is underperforming S&P 500 (+33.6%) by 27.8% — watch for FII-driven catch-up or continued divergence
 - 👁 **Defense / Geopolitics** in focus _(news: war)_ — Watch HAL, BEL at open — geopolitical news typically has 1-2 day lag on NSE
 - 👁 **Oil & Energy** in focus _(news: oil, crude)_ — OMC stocks (BPCL, IOC) sensitive to overnight crude moves — check WTI at US close
@@ -66,28 +66,28 @@ _Run: 2026-07-01 13:07 UTC_
 |---|---|---|---|---|
 | LMT | Defense / Geopolitics | $509.46 | +6.5% | 🟢 BUY |
 | RTX | Defense / Geopolitics | $189.73 | +51.3% | 🟢 STRONG BUY |
-| AIR | Defense / Geopolitics | $198.48 | +25.6% | 🟢 STRONG BUY |
+| AIR | Defense / Geopolitics | $198.28 | +25.5% | 🟢 STRONG BUY |
 | XOM | Oil & Energy | $136.72 | +16.4% | 🟢 STRONG BUY |
 | CVX | Oil & Energy | $165.76 | +5.8% | 🟢 BUY |
-| SHEL | Oil & Energy | p2,883 | +11.7% | 🟢 STRONG BUY |
-| TTE | Oil & Energy | $66.94 | +14.4% | 🟢 STRONG BUY |
+| SHEL | Oil & Energy | p2,885 | +11.8% | 🟢 STRONG BUY |
+| TTE | Oil & Energy | $66.95 | +14.4% | 🟢 STRONG BUY |
 | PFE | Pharma / Healthcare | $24.08 | -2.9% | 🟡 HOLD |
 | JNJ | Pharma / Healthcare | $253.97 | +59.9% | 🟢 STRONG BUY |
-| NOVN | Pharma / Healthcare | $125.44 | +43.4% | 🟢 STRONG BUY |
+| NOVN | Pharma / Healthcare | $125.38 | +43.3% | 🟢 STRONG BUY |
 | ROG | Pharma / Healthcare | N/A | N/A | ⚪ NO DATA |
 | NVDA | Tech / AI | $200.09 | +81.9% | 🟢 STRONG BUY |
 | MSFT | Tech / AI | $373.02 | -1.5% | 🟡 HOLD |
 | GOOGL | Tech / AI | $357.37 | +116.1% | 🟢 STRONG BUY |
-| ASML | Tech / AI | $1,706.20 | +137.0% | 🟢 STRONG BUY |
-| SAP | Tech / AI | $137.54 | -45.9% | 🔴 STRONG SELL |
+| ASML | Tech / AI | $1,701.80 | +136.4% | 🟢 STRONG BUY |
+| SAP | Tech / AI | $137.98 | -45.7% | 🔴 STRONG SELL |
 | JPM | Banking & Rates | $327.33 | +37.4% | 🟢 STRONG BUY |
 | BAC | Banking & Rates | $56.98 | +29.8% | 🟢 STRONG BUY |
 | GS | Banking & Rates | $1,011.37 | +87.8% | 🟢 STRONG BUY |
-| BARC | Banking & Rates | p509 | +83.0% | 🟢 STRONG BUY |
-| HSBA | Banking & Rates | p1,429 | +82.7% | 🟢 STRONG BUY |
+| BARC | Banking & Rates | p509 | +83.1% | 🟢 STRONG BUY |
+| HSBA | Banking & Rates | p1,427 | +82.5% | 🟢 STRONG BUY |
 | TSLA | Auto / EV | $420.60 | +58.7% | 🟢 STRONG BUY |
-| SIE | Auto / EV | $275.45 | +28.1% | 🟢 STRONG BUY |
-| GC=F | Safe Haven / Gold | $4,039.8 | +92.4% | 🟢 STRONG BUY |
+| SIE | Auto / EV | $274.80 | +27.8% | 🟢 STRONG BUY |
+| GC=F | Safe Haven / Gold | $4,032.9 | +92.0% | 🟢 STRONG BUY |
 | AMZN | Trade / Macro | $238.34 | +20.9% | 🟢 STRONG BUY |
 
 ### 🇺🇸 US Stocks
@@ -109,16 +109,16 @@ _Run: 2026-07-01 13:07 UTC_
 
 | Stock | Price | vs Apr 1 | Signal |
 |---|---|---|---|
-| ASML | $1,706.20 | +137.0% | 🟢 STRONG BUY |
-| SAP | $137.54 | -45.9% | 🔴 STRONG SELL |
-| Siemens | $275.45 | +28.1% | 🟢 STRONG BUY |
-| Airbus | $198.48 | +25.6% | 🟢 STRONG BUY |
-| LVMH | $476.15 | -30.0% | 🔴 STRONG SELL |
-| Shell | p2,883 | +11.7% | 🟢 STRONG BUY |
-| Novartis | $125.44 | +43.4% | 🟢 STRONG BUY |
+| ASML | $1,701.80 | +136.4% | 🟢 STRONG BUY |
+| SAP | $137.98 | -45.7% | 🔴 STRONG SELL |
+| Siemens | $274.80 | +27.8% | 🟢 STRONG BUY |
+| Airbus | $198.28 | +25.5% | 🟢 STRONG BUY |
+| LVMH | $475.65 | -30.1% | 🔴 STRONG SELL |
+| Shell | p2,885 | +11.8% | 🟢 STRONG BUY |
+| Novartis | $125.38 | +43.3% | 🟢 STRONG BUY |
 | Roche | N/A | N/A | ⚪ NO DATA |
-| Barclays | p509 | +83.0% | 🟢 STRONG BUY |
-| HSBC | p1,429 | +82.7% | 🟢 STRONG BUY |
+| Barclays | p509 | +83.1% | 🟢 STRONG BUY |
+| HSBC | p1,427 | +82.5% | 🟢 STRONG BUY |
 
 ---
 
@@ -147,4 +147,4 @@ _Source: [equitypandit.com/giftnifty](https://www.equitypandit.com/giftnifty/)_
 - Sensex rises over 400 points, Nifty 50 ends above 24,000; investors earn over  ₹2 lakh crore in a day
 
 ---
-_Vest · Global Market Tracker · news-adaptive · 2026-07-01 13:07 UTC_
+_Vest · Global Market Tracker · news-adaptive · 2026-07-01 13:12 UTC_
