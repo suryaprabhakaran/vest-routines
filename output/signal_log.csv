@@ -1,0 +1,3 @@
+date,instrument,price_at_emission,signal_type,reason,follow_through_pct,scored_date
+2026-07-01,HCLTECH.NS,1034.2,POSITIVE,"Tech / AI | news: ai, cloud | ▼23.6% vs baseline",,
+2026-07-01,GC=F,4035.1,MACRO,Gold +92.2% vs baseline — extreme risk-off; defensive posture,,
