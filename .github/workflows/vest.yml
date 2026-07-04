@@ -54,7 +54,7 @@ jobs:
           git push
 
   signal-logger:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 21')
+    if: startsWith(github.event.schedule, '0 21')
     runs-on: ubuntu-latest
     permissions:
       contents: write
