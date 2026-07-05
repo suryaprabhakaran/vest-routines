@@ -1,0 +1,3 @@
+date,instrument,price_at_emission,signal_type,reason,follow_through_pct,scored_date
+2026-07-02,MCX.NS,3021.0,POSITIVE,"Safe Haven / Gold | news: gold, silver | ▲22.3% vs baseline",,
+2026-07-02,GC=F,4077.7,MACRO,Gold +94.2% vs baseline — extreme risk-off; defensive posture,,
