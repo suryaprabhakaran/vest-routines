@@ -27,8 +27,16 @@ jobs:
           git config user.name "vest-bot"
           git config user.email "vest-bot@users.noreply.github.com"
           git add output/
-          git diff --cached --quiet || git commit -m "chore: market tracker output $(date -u +%Y-%m-%d)"
-          git push
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: market tracker output $(date -u +%Y-%m-%d)"
+          for i in 1 2 3 4 5; do
+            git push && exit 0
+            git fetch origin main
+            git rebase origin/main
+            sleep $((i * 2))
+          done
+          echo "::error::Failed to push after 5 attempts"
+          exit 1
 
   job-scanner:
     if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 18')
@@ -50,8 +58,16 @@ jobs:
           git config user.name "vest-bot"
           git config user.email "vest-bot@users.noreply.github.com"
           git add output/
-          git diff --cached --quiet || git commit -m "chore: job scan output $(date -u +%Y-%m-%d)"
-          git push
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: job scan output $(date -u +%Y-%m-%d)"
+          for i in 1 2 3 4 5; do
+            git push && exit 0
+            git fetch origin main
+            git rebase origin/main
+            sleep $((i * 2))
+          done
+          echo "::error::Failed to push after 5 attempts"
+          exit 1
 
   signal-logger:
     if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 21')
@@ -73,5 +89,13 @@ jobs:
           git config user.name "vest-bot"
           git config user.email "vest-bot@users.noreply.github.com"
           git add output/signal_log.csv output/signal-log-*.md
-          git diff --cached --quiet || git commit -m "chore: signal log $(date -u +%Y-%m-%d)"
-          git push
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: signal log $(date -u +%Y-%m-%d)"
+          for i in 1 2 3 4 5; do
+            git push && exit 0
+            git fetch origin main
+            git rebase origin/main
+            sleep $((i * 2))
+          done
+          echo "::error::Failed to push after 5 attempts"
+          exit 1
