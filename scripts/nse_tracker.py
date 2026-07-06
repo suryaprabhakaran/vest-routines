@@ -1,4 +1,4 @@
-import urllib.request, json, time, re, xml.etree.ElementTree as ET, os
+import urllib.request, json, time, re, xml.etree.ElementTree as ET, os, subprocess
 from datetime import datetime
 from output_helper import publish, send_telegram_text
 
@@ -712,6 +712,11 @@ try:
     print(md)
     summary = f"📊 Vest Market Tracker {today_str} — {len(themes)} themes · {len(active_sectors)} sectors in focus"
     publish(TG_TOKEN, TG_CHAT_ID, md, "market-tracker", summary)
+
+    print("Running signal logger...")
+    signal_script = os.path.join(os.path.dirname(__file__), "signal_logger.py")
+    subprocess.run(["python3", signal_script], check=True, env=os.environ.copy())
+
     print("Done.")
 
 except Exception as e:
