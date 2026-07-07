@@ -54,7 +54,7 @@ jobs:
           git pull --rebase origin main && git push
 
   signal-logger:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 21')
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 21') || startsWith(github.event.schedule, '0 18')
     runs-on: ubuntu-latest
     permissions:
       contents: write
