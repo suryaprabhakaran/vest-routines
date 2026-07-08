@@ -1,5 +1,7 @@
 date,instrument,price_at_emission,signal_type,reason,follow_through_pct,scored_date
-2026-07-01,HCLTECH.NS,1034.2,POSITIVE,"Tech / AI | news: ai, cloud | ▼23.6% vs baseline",,
-2026-07-01,GC=F,4035.1,MACRO,Gold +92.2% vs baseline — extreme risk-off; defensive posture,,
-2026-07-06,HAL.NS,4440.6,POSITIVE,Defense / Geopolitics | news: war | ▲21.0% vs baseline,,
-2026-07-06,GC=F,4157.0,MACRO,Gold +98.0% vs baseline — extreme risk-off; defensive posture,,
+2026-07-01,HCLTECH.NS,1034.2,POSITIVE,"Tech / AI | news: ai, cloud | ▼23.6% vs baseline",10.77,2026-07-08
+2026-07-01,GC=F,4035.1,MACRO,Gold +92.2% vs baseline — extreme risk-off; defensive posture,1.1,2026-07-08
+2026-07-06,HAL.NS,4440.6,POSITIVE,Defense / Geopolitics | news: war | ▲21.0% vs baseline,-1.71,2026-07-08
+2026-07-06,GC=F,4157.0,MACRO,Gold +98.0% vs baseline — extreme risk-off; defensive posture,-1.86,2026-07-08
+2026-07-08,HAL.NS,4364.7,POSITIVE,"Defense / Geopolitics | news: war, ceasefire | ▲18.9% vs baseline",,
+2026-07-08,GC=F,4079.5,MACRO,Gold +94.3% vs baseline — extreme risk-off; defensive posture,,
