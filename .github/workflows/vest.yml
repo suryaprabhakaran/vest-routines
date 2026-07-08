@@ -52,6 +52,29 @@ jobs:
           git diff --cached --quiet || git commit -m "chore: job scan output $(date -u +%Y-%m-%d)"
           git pull --rebase origin main && git push
 
+  pmo-scanner:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 18')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run PMO scanner
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: cd scripts && python pmo_scanner.py
+      - name: Commit output
+        run: |
+          git config user.name "vest-bot"
+          git config user.email "vest-bot@users.noreply.github.com"
+          git add output/
+          git diff --cached --quiet || git commit -m "chore: pmo scan output $(date -u +%Y-%m-%d)"
+          git pull --rebase origin main && git push
+
   signal-logger:
     if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 18')
     runs-on: ubuntu-latest
