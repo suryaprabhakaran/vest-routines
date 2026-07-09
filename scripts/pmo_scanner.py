@@ -12,11 +12,35 @@ tailored to Ramalakshmi Perianayagam's profile:
 Sources (in order): Adzuna BE → Indeed BE JSON → EuroJobSites RSS
 """
 import urllib.request, urllib.parse, json, os, time, re
-from datetime import datetime
+from datetime import datetime, timedelta
 from output_helper import publish, send_telegram_text
 
 TG_TOKEN   = os.environ["TG_TOKEN"]
 TG_CHAT_ID = os.environ["TG_CHAT_ID"]
+
+MAX_AGE_DAYS = 30   # drop any listing posted more than this many days ago
+
+def _age_days(date_str):
+    """Return days since date_str, or None if unparseable (→ include by default)."""
+    if not date_str:
+        return None
+    for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
+        try:
+            return (datetime.now() - datetime.strptime(date_str[:len(fmt)], fmt)).days
+        except ValueError:
+            pass
+    try:
+        from email.utils import parsedate
+        t = parsedate(date_str)
+        if t:
+            return (datetime.now() - datetime(*t[:6])).days
+    except Exception:
+        pass
+    return None
+
+def _fresh(date_str):
+    age = _age_days(date_str)
+    return age is None or age <= MAX_AGE_DAYS
 
 # ── Scoring ───────────────────────────────────────────────────────────────────
 
@@ -89,7 +113,7 @@ def search_adzuna(query, max_results=10):
     results = []
     try:
         q = urllib.parse.quote_plus(query)
-        url = f"https://www.adzuna.be/search?q={q}&w=Belgium&format=json"
+        url = f"https://www.adzuna.be/search?q={q}&w=Belgium&days_since={MAX_AGE_DAYS}&format=json"
         req = urllib.request.Request(
             url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
         )
@@ -100,7 +124,8 @@ def search_adzuna(query, max_results=10):
             company = job.get("company", {}).get("display_name", "") or job.get("company", "")
             link    = job.get("redirect_url", "") or job.get("url", "")
             desc    = job.get("description", "")[:300]
-            if title and link:
+            created = job.get("created", "")
+            if title and link and _fresh(created):
                 results.append((title, company, link, desc, "Adzuna BE"))
     except Exception as e:
         print(f"Adzuna error [{query}]: {e}")
@@ -114,7 +139,7 @@ def search_indeed_json(query, location="Belgium", max_results=10):
     try:
         q = urllib.parse.quote_plus(query)
         l = urllib.parse.quote_plus(location)
-        url = f"https://be.indeed.com/jobs?q={q}&l={l}&sort=date&fromage=14&format=json"
+        url = f"https://be.indeed.com/jobs?q={q}&l={l}&sort=date&fromage={MAX_AGE_DAYS}&format=json"
         req = urllib.request.Request(url, headers={
             "User-Agent": "Mozilla/5.0",
             "Accept": "application/json",
@@ -127,7 +152,8 @@ def search_indeed_json(query, location="Belgium", max_results=10):
             company = job.get("company", "").strip()
             link    = "https://be.indeed.com" + job.get("url", "")
             desc    = job.get("snippet", "")[:300]
-            if title and link:
+            date    = job.get("date", "")
+            if title and link and _fresh(date):
                 results.append((title, company, link, desc, "Indeed BE"))
     except Exception as e:
         print(f"Indeed JSON error [{query}]: {e}")
@@ -147,10 +173,11 @@ def search_eurojobsites(query):
         with urllib.request.urlopen(req, timeout=12) as r:
             root = ET.fromstring(r.read().decode("utf-8", errors="replace"))
         for item in list(root.iter("item"))[:8]:
-            title = STRIP.sub("", item.findtext("title", "")).strip()
-            link  = item.findtext("link", "").strip()
-            desc  = STRIP.sub("", item.findtext("description", "")).strip()[:300]
-            if title and link:
+            title   = STRIP.sub("", item.findtext("title", "")).strip()
+            link    = item.findtext("link", "").strip()
+            desc    = STRIP.sub("", item.findtext("description", "")).strip()[:300]
+            pubdate = item.findtext("pubDate", "").strip()
+            if title and link and _fresh(pubdate):
                 results.append((title, "", link, desc, "EuroJobSites"))
     except Exception as e:
         print(f"EuroJobSites error [{query}]: {e}")
