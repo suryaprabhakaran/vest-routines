@@ -1,12 +1,17 @@
 """
 Vest Job Scanner
 ----------------
+Scans Belgian job boards for two profiles:
+  - Surya Prabhakaran      : Chief Enterprise Architect (senior tech leadership)
+  - Ramalakshmi Perianayagam: PMO / Programme Manager (governance, delivery)
+
 Sources (in order of reliability):
 1. Adzuna Belgium public API  — free, no key needed for basic search
 2. Indeed BE JSON endpoint    — fallback
-3. Any board that responds    — graceful skip if blocked
+3. EuroJobSites RSS           — EU-focused
 
-The Claude Code routine also runs Indeed MCP independently for richer results.
+The Claude Code routine also runs Indeed MCP independently for richer results
+and writes its own output files with the same prefixes.
 """
 import urllib.request, urllib.parse, json, os, time, re
 from datetime import datetime
@@ -15,21 +20,23 @@ from output_helper import publish, send_telegram_text
 TG_TOKEN  = os.environ["TG_TOKEN"]
 TG_CHAT_ID = os.environ["TG_CHAT_ID"]
 
-POSITIVE = [
-    "togaf","enterprise architect","chief architect","vp architect","head of architect",
-    "principal architect","transformation","cloud","aws","azure","gcp","ai","mlops",
-    "microservices","digital","travel","international","european","governance","strategy",
-    "financial services","insurance","healthcare","public sector",
-]
-NEGATIVE = [
-    "junior","medior","graduate","intern","entry level","front-end","frontend",
-    "backend","devops engineer","developer","qa","test","scrum master","project manager",
+# ── Surya: Chief Enterprise Architect ─────────────────────────────────────────
+SURYA_QUERIES = [
+    "Chief Architect",
+    "Enterprise Architect Director",
+    "VP Architecture",
+    "Head of Enterprise Architecture",
+    "Principal Architect TOGAF",
 ]
 
-def match_pct(title, desc=""):
+def match_pct_surya(title, desc=""):
     text = (title + " " + desc).lower()
     score = 50
-    if any(k in text for k in ["chief architect","vp architect","head of architect","ea director","vp of architect"]):
+    if any(k in text for k in [
+        "chief architect","vp architect","head of architect","ea director",
+        "vp of architect","lead enterprise architect","enterprise architect",
+        "principal architect",
+    ]):
         score += 10
     if any(k in text for k in ["belgium","brussels","antwerp","ghent","liege","bruges"]):
         score += 10
@@ -45,14 +52,46 @@ def match_pct(title, desc=""):
         score -= 20
     return min(max(score, 0), 100)
 
-# ── Source 1: Adzuna Belgium public API ──────────────────────────────────────
+# ── Ramalakshmi: PMO / Programme Manager ──────────────────────────────────────
+RAMALAKSHMI_QUERIES = [
+    "PMO Manager Belgium",
+    "PMO Lead Belgium",
+    "Programme Manager Belgium",
+    "Head of PMO Belgium",
+    "Portfolio Manager Belgium",
+    "Governance Manager Belgium",
+    "Delivery Manager Belgium",
+    "Service Delivery Manager Belgium",
+]
+
+def match_pct_ramalakshmi(title, desc=""):
+    text = (title + " " + desc).lower()
+    score = 50
+    if any(k in text for k in [
+        "pmo manager","pmo lead","head of pmo","programme manager","program manager",
+        "portfolio manager","delivery manager","governance manager",
+        "service delivery manager","project management office",
+    ]):
+        score += 10
+    if any(k in text for k in ["belgium","brussels","antwerp","ghent","liege","bruges"]):
+        score += 10
+    if any(k in text for k in ["itil","agile","waterfall","governance","programme","pmo","jira","confluence","stakeholder"]):
+        score += 10
+    if any(k in text for k in ["banking","financial","telecoms","telecom","technology","insurance","consulting"]):
+        score += 10
+    if any(k in text for k in ["senior","lead","head","manager","director"]):
+        score += 10
+    if any(k in text for k in ["junior","medior","graduate","intern","entry level"]):
+        score -= 20
+    if any(k in text for k in ["developer","devops","frontend","backend","qa","architect","data scientist","scrum master"]):
+        score -= 20
+    return min(max(score, 0), 100)
+
+# ── Source 1: Adzuna Belgium public API ───────────────────────────────────────
 def search_adzuna(query, max_results=10):
     results = []
     try:
         q = urllib.parse.quote_plus(query)
-        # Adzuna has a free unauthenticated browse endpoint
-        url = f"https://api.adzuna.com/v1/api/jobs/be/search/1?results_per_page={max_results}&what={q}&content-type=application/json&app_id=&app_key="
-        # Use the public web search instead (no API key needed)
         url = f"https://www.adzuna.be/search?q={q}&w=Belgium&format=json"
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0", "Accept": "application/json"})
         with urllib.request.urlopen(req, timeout=12) as r:
@@ -68,7 +107,7 @@ def search_adzuna(query, max_results=10):
         print(f"Adzuna error [{query}]: {e}")
     return results
 
-# ── Source 2: Indeed via public search JSON ───────────────────────────────────
+# ── Source 2: Indeed via public search JSON ────────────────────────────────────
 def search_indeed_json(query, location="Belgium", max_results=10):
     results = []
     try:
@@ -93,7 +132,7 @@ def search_indeed_json(query, location="Belgium", max_results=10):
         print(f"Indeed JSON error [{query}]: {e}")
     return results
 
-# ── Source 3: EuroJobSites RSS (EU-focused, architecture roles) ───────────────
+# ── Source 3: EuroJobSites RSS ────────────────────────────────────────────────
 def search_eurojobsites(query):
     results = []
     try:
@@ -120,23 +159,11 @@ def send_error(err):
     except:
         pass
 
-# ── Main ──────────────────────────────────────────────────────────────────────
-QUERIES = [
-    "Chief Architect",
-    "Enterprise Architect Director",
-    "VP Architecture",
-    "Head of Enterprise Architecture",
-    "Principal Architect TOGAF",
-]
-
-try:
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    print("Scanning job boards...")
-
+def run_scan(queries, scorer_fn, top_n=12):
+    """Run all queries through all sources, deduplicate, score, and return top_n."""
     seen_urls = set()
-    all_jobs  = []  # (match_pct, title, company, url, source)
-
-    for query in QUERIES:
+    all_jobs  = []
+    for query in queries:
         for fn in [search_adzuna, search_indeed_json, search_eurojobsites]:
             try:
                 rows = fn(query)
@@ -144,41 +171,59 @@ try:
                     if url in seen_urls:
                         continue
                     seen_urls.add(url)
-                    pct = match_pct(title, desc)
+                    pct = scorer_fn(title, desc)
                     if pct >= 60:
                         all_jobs.append((pct, title, company, url, source))
             except Exception as e:
                 print(f"Error in {fn.__name__}: {e}")
             time.sleep(0.4)
-
     all_jobs.sort(key=lambda x: x[0], reverse=True)
-    top_jobs = all_jobs[:12]
+    return all_jobs[:top_n]
 
-    sources = {}
-    for _, _, _, _, src in top_jobs:
-        sources[src] = sources.get(src, 0) + 1
-    source_summary = " · ".join(f"{s} ({n})" for s, n in sources.items()) if sources else "no results"
-
-    if top_jobs:
+def build_md(today_str, person_name, jobs):
+    if jobs:
+        sources = {}
+        for _, _, _, _, src in jobs:
+            sources[src] = sources.get(src, 0) + 1
+        source_summary = " · ".join(f"{s} ({n})" for s, n in sources.items())
         job_lines = "\n".join(
             f"- [{title}{' — ' + company if company else ''}]({url}) — **{pct}% match**"
-            for pct, title, company, url, source in top_jobs
+            for pct, title, company, url, _ in jobs
         )
     else:
+        source_summary = "no results"
         job_lines = "- No matches found — boards may be rate-limiting. The Claude Code routine runs Indeed MCP separately."
 
-    md_content = (
-        f"# 💼 Vest Job Scanner — {today_str}\n\n"
+    return (
+        f"# 💼 Vest Job Scanner — {person_name} — {today_str}\n\n"
         f"_Sources checked: {source_summary}_\n\n"
-        f"## Matches ({len(top_jobs)} roles)\n\n"
+        f"## Matches ({len(jobs)} roles)\n\n"
         f"{job_lines}\n\n"
         f"---\n"
         f"_Vest · Job Scanner · {today_str}_\n"
     )
 
-    summary = f"💼 Vest Job Scanner {today_str} — {len(top_jobs)} matches"
-    print(md_content)
-    publish(TG_TOKEN, TG_CHAT_ID, md_content, "job-scan", summary)
+# ── Main ──────────────────────────────────────────────────────────────────────
+try:
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    print("Scanning job boards...")
+
+    # Surya: Chief Enterprise Architect
+    print("\n--- Surya (Enterprise Architect) ---")
+    surya_jobs = run_scan(SURYA_QUERIES, match_pct_surya, top_n=12)
+    surya_md   = build_md(today_str, "Surya", surya_jobs)
+    print(surya_md)
+    publish(TG_TOKEN, TG_CHAT_ID, surya_md, "job-scan",
+            f"💼 Vest Job Scanner · Surya · {today_str} — {len(surya_jobs)} matches")
+
+    # Ramalakshmi: PMO / Programme Manager
+    print("\n--- Ramalakshmi (PMO / Programme Manager) ---")
+    rama_jobs = run_scan(RAMALAKSHMI_QUERIES, match_pct_ramalakshmi, top_n=12)
+    rama_md   = build_md(today_str, "Ramalakshmi", rama_jobs)
+    print(rama_md)
+    publish(TG_TOKEN, TG_CHAT_ID, rama_md, "job-scan-ramalakshmi",
+            f"💼 Vest Job Scanner · Ramalakshmi · {today_str} — {len(rama_jobs)} matches")
+
     print("Done.")
 
 except Exception as e:
