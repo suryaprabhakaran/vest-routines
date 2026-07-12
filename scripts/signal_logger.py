@@ -22,63 +22,101 @@ LOG_PATH    = os.path.join(SCRIPTS_DIR, "..", "output", "signal_log.csv")
 LOG_FIELDS  = ["date", "instrument", "price_at_emission", "signal_type", "reason",
                "follow_through_pct", "scored_date"]
 
+# Baseline: closing prices on 2026-02-01
 BASELINE = {
-    "^NSEI": 22679.40, "^BSESN": 73134.32,
-    "^GSPC": 5611.85,  "^IXIC": 17449.89, "^DJI": 41989.96,
-    "^FTSE": 8614.00,  "^GDAXI": 22035.00,
-    "GC=F": 2100.00, "CL=F": 71.50,
-    "RELIANCE.NS": 1369.20, "BPCL.NS": 281.25, "IOC.NS": 135.72,
-    "HINDPETRO.NS": 335.55, "ONGC.NS": 288.05,
-    "HDFCBANK.NS": 742.25, "SBIN.NS": 1017.80, "ICICIBANK.NS": 1212.70,
-    "AXISBANK.NS": 1193.10, "KOTAKBANK.NS": 356.05,
-    "TCS.NS": 2408.20, "INFY.NS": 1275.70, "WIPRO.NS": 191.18,
-    "TECHM.NS": 1404.50, "HCLTECH.NS": 1354.40,
-    "SUNPHARMA.NS": 1728.50, "DRREDDY.NS": 1209.60, "CIPLA.NS": 1195.90,
-    "MARUTI.NS": 12509.00, "BHARTIARTL.NS": 1781.90,
-    "HAL.NS": 3670.80, "BEL.NS": 418.70,
-    "HINDUNILVR.NS": 2064.70, "ITC.NS": 291.70, "TITAN.NS": 4065.50,
-    "TATAPOWER.NS": 380.20, "MCX.NS": 2469.70, "BANKBARODA.NS": 252.03,
-    "AAPL": 223.19, "MSFT": 378.80, "NVDA": 110.00, "GOOGL": 165.40,
-    "AMZN": 197.12, "META": 558.11, "TSLA": 265.00,
-    "JPM": 238.24, "BAC": 43.90, "GS": 538.50,
-    "XOM": 117.50, "CVX": 156.70, "LMT": 478.20, "RTX": 125.40,
-    "ASML.AS": 720.00, "SAP.DE": 254.00, "SHEL.L": 2580.00,
+    "^NSEI": 23482.15, "^BSESN": 75527.95,
+    "^GSPC": 7424.99,  "^IXIC": 25849.34, "^DJI": 51250.9,
+    "^FTSE": 10452.33, "^GDAXI": 24537.91,
+    "GC=F": 4204.3, "CL=F": 86.44,
+    "RELIANCE.NS": 1264.6, "BPCL.NS": 255.65, "IOC.NS": 125.42,
+    "HINDPETRO.NS": 344.85, "ONGC.NS": 257.55,
+    "HDFCBANK.NS": 845.47, "SBIN.NS": 766.0, "ICICIBANK.NS": 1255.55,
+    "AXISBANK.NS": 998.15, "KOTAKBANK.NS": 380.62,
+    "TCS.NS": 4073.15, "INFY.NS": 1851.35, "WIPRO.NS": 304.8,
+    "TECHM.NS": 1646.4, "HCLTECH.NS": 1694.0,
+    "SUNPHARMA.NS": 1742.2, "DRREDDY.NS": 1204.95, "CIPLA.NS": 1439.5,
+    "MARUTI.NS": 12916.5, "BHARTIARTL.NS": 1623.25,
+    "HAL.NS": 3774.95, "BEL.NS": 281.8,
+    "HINDUNILVR.NS": 2506.05, "ITC.NS": 462.55, "TITAN.NS": 3552.0,
+    "TATAPOWER.NS": 368.4, "MCX.NS": 1154.95, "BANKBARODA.NS": 210.84,
+    "AAPL": 291.17, "MSFT": 387.25, "NVDA": 205.5, "GOOGL": 362.34,
+    "AMZN": 236.43, "META": 568.53, "TSLA": 397.42,
+    "JPM": 320.35, "BAC": 56.05, "GS": 1068.45,
+    "XOM": 148.16, "CVX": 187.28, "LMT": 545.01, "RTX": 184.26,
+    "ASML.AS": 1603.8, "SAP.DE": 139.34, "SHEL.L": 3220.0,
 }
 
 GLOBAL_SECTORS = [
     {"name": "Defense / Geopolitics",
      "keywords": ["defense","defence","military","war","nato","missile","army","ceasefire",
                   "pakistan","china","border","conflict"],
-     "nse": ["HAL.NS","BEL.NS"], "signal": "positive"},
+     "nse": ["HAL.NS","BEL.NS"],
+     "us":  ["LMT","RTX"],
+     "eu":  ["AIR.PA"],
+     "signal": "positive"},
     {"name": "Oil & Energy",
      "keywords": ["oil","crude","opec","petroleum","bpcl","ongc","exxon","shell",
                   "energy","refinery","petrol","diesel"],
-     "nse": ["BPCL.NS","IOC.NS","HINDPETRO.NS","ONGC.NS"], "signal": "negative"},
+     "nse": ["BPCL.NS","IOC.NS","HINDPETRO.NS","ONGC.NS"],
+     "us":  ["XOM","CVX"],
+     "eu":  ["SHEL.L","TTE.PA"],
+     "signal": "negative"},
     {"name": "Pharma / Healthcare",
      "keywords": ["pharma","drug","fda","health","medicine","cipla","pfizer",
                   "novartis","pandemic","biotech"],
-     "nse": ["SUNPHARMA.NS","CIPLA.NS","DRREDDY.NS"], "signal": "positive"},
+     "nse": ["SUNPHARMA.NS","CIPLA.NS","DRREDDY.NS"],
+     "us":  ["PFE","JNJ"],
+     "eu":  ["NOVN.SW","ROG.SW"],
+     "signal": "positive"},
     {"name": "Tech / AI",
      "keywords": ["ai","artificial intelligence","chip","semiconductor","nvidia",
                   "microsoft","cloud","llm","automation","software","it sector"],
-     "nse": ["TCS.NS","INFY.NS","WIPRO.NS","HCLTECH.NS","TECHM.NS"], "signal": "positive"},
+     "nse": ["TCS.NS","INFY.NS","WIPRO.NS","HCLTECH.NS","TECHM.NS"],
+     "us":  ["NVDA","MSFT","GOOGL","AAPL","AMZN"],
+     "eu":  ["ASML.AS","SAP.DE"],
+     "signal": "positive"},
     {"name": "Banking & Rates",
      "keywords": ["bank","rate","fed","ecb","rbi","repo","inflation","credit",
                   "interest","npa","liquidity","monetary"],
-     "nse": ["HDFCBANK.NS","SBIN.NS","ICICIBANK.NS","AXISBANK.NS"], "signal": "positive"},
+     "nse": ["HDFCBANK.NS","SBIN.NS","ICICIBANK.NS","AXISBANK.NS"],
+     "us":  ["JPM","BAC","GS"],
+     "eu":  ["BARC.L","HSBA.L"],
+     "signal": "positive"},
     {"name": "Safe Haven / Gold",
      "keywords": ["gold","silver","safe haven","risk off","vix","dollar","yen",
                   "recession","fear"],
-     "nse": ["MCX.NS","TITAN.NS"], "signal": "positive"},
+     "nse": ["MCX.NS","TITAN.NS"],
+     "us":  ["GC=F"],
+     "eu":  [],
+     "signal": "positive"},
     {"name": "Trade / Macro",
      "keywords": ["trade","tariff","export","import","supply chain","dollar",
                   "forex","rupee","euro","gdp","growth"],
-     "nse": ["RELIANCE.NS","MARUTI.NS"], "signal": "positive"},
+     "nse": ["RELIANCE.NS","MARUTI.NS"],
+     "us":  ["AMZN","MSFT"],
+     "eu":  [],
+     "signal": "positive"},
     {"name": "Auto / EV",
      "keywords": ["ev","electric vehicle","tesla","auto","automobile","maruti",
                   "car","suv","battery","vehicle sales"],
-     "nse": ["MARUTI.NS","TATAPOWER.NS"], "signal": "positive"},
+     "nse": ["MARUTI.NS","TATAPOWER.NS"],
+     "us":  ["TSLA"],
+     "eu":  ["SIE.DE","AIR.PA"],
+     "signal": "positive"},
 ]
+
+# Baseline prices for US/EU tickers not already in BASELINE
+BASELINE.update({
+    "LMT": 545.01, "RTX": 184.26, "AIR.PA": 181.0,
+    "XOM": 148.16, "CVX": 187.28, "SHEL.L": 3220.0, "TTE.PA": 74.0,
+    "PFE": 26.17,  "JNJ": 238.33, "NOVN.SW": 121.0, "ROG.SW": 245.0,
+    "NVDA": 205.5, "MSFT": 387.25, "GOOGL": 362.34, "AAPL": 291.17, "AMZN": 236.43,
+    "ASML.AS": 1603.8, "SAP.DE": 139.34,
+    "JPM": 320.35, "BAC": 56.05, "GS": 1068.45, "BARC.L": 471.0, "HSBA.L": 1371.0,
+    "GC=F": 4204.3, "CL=F": 86.44,
+    "TSLA": 397.42, "SIE.DE": 259.0,
+    "^GSPC": 7424.99, "^NSEI": 23482.15, "^FTSE": 10452.33, "^GDAXI": 24537.91,
+})
 
 STRIP = re.compile(r"<[^>]+>")
 
@@ -167,76 +205,95 @@ def score_old_signals(rows, prices):
 # ── Signal selection (1-2 high-conviction picks) ─────────────────────────────
 def pick_signals(prices, all_text):
     """
-    Select max 2 signals by combining:
-    - Biggest mover with strong news backing (not just noise)
-    - Strongest news theme with confirmed price action
-    Returns list of dicts: {instrument, price_at_emission, signal_type, reason}
+    Select max 2 signals across NSE, US, and EU markets:
+    - Signal 1: biggest news-backed mover across all three markets
+    - Signal 2: best mover from a different market (ensures geographic diversity)
+    Each signal must have BOTH a news trigger AND a price move to qualify.
     """
     combined = " ".join(all_text)
-    signals  = []
+    today    = datetime.utcnow().strftime("%Y-%m-%d")
 
-    # ── Candidate 1: biggest NSE mover with a news reason ──────────────────
-    nse_moves = []
+    def make_sig(ticker, sector_name, triggers, r_val, sig_type, market):
+        p_now = prices.get(ticker)
+        direction = "▲" if r_val > 0 else "▼"
+        currency = ("₹" if ticker.endswith(".NS")
+                    else "p" if ticker.endswith(".L")
+                    else "$")
+        p_str = f"{currency}{p_now:,.2f}" if p_now else "N/A"
+        return {
+            "date": today,
+            "instrument": ticker,
+            "price_at_emission": str(round(p_now, 2)) if p_now else "",
+            "signal_type": f"{sig_type.upper()} ({market})",
+            "reason": (f"{sector_name} | news: {', '.join(triggers)} | "
+                       f"{direction}{abs(r_val):.1f}% vs baseline | price: {p_str}"),
+            "_market": market,
+            "_abs_r": abs(r_val),
+        }
+
+    candidates = []  # (abs_r, market, sig_dict)
+
     for sector in GLOBAL_SECTORS:
         hits = [kw for kw in sector["keywords"] if kw in combined]
         if not hits:
             continue
-        for ticker in sector["nse"]:
-            p = prices.get(ticker)
-            r = pct(p, BASELINE.get(ticker))
-            if r is not None:
-                nse_moves.append((abs(r), r, ticker, sector["name"],
-                                  hits[:2], sector["signal"]))
+        triggers = hits[:2]
 
-    nse_moves.sort(reverse=True)
-    if nse_moves:
-        _, r_val, ticker, sector_name, triggers, sig_type = nse_moves[0]
-        p_now = prices.get(ticker)
-        direction = "▲" if r_val > 0 else "▼"
-        signals.append({
-            "date": datetime.utcnow().strftime("%Y-%m-%d"),
-            "instrument": ticker,
-            "price_at_emission": str(round(p_now, 2)) if p_now else "",
-            "signal_type": sig_type.upper(),
-            "reason": f"{sector_name} | news: {', '.join(triggers)} | {direction}{abs(r_val):.1f}% vs baseline",
-        })
+        for market, key in [("NSE", "nse"), ("US", "us"), ("EU", "eu")]:
+            for ticker in sector.get(key, []):
+                p = prices.get(ticker)
+                r = pct(p, BASELINE.get(ticker))
+                if r is None:
+                    continue
+                sig = make_sig(ticker, sector["name"], triggers, r, sector["signal"], market)
+                candidates.append((abs(r), market, sig))
 
-    # ── Candidate 2: macro risk signal (Gold or Crude with threshold) ───────
-    gold_r  = pct(prices.get("GC=F"), BASELINE.get("GC=F"))
-    crude_r = pct(prices.get("CL=F"), BASELINE.get("CL=F"))
-    sp_r    = pct(prices.get("^GSPC"), BASELINE.get("^GSPC"))
-    nsei_r  = pct(prices.get("^NSEI"), BASELINE.get("^NSEI"))
+    candidates.sort(key=lambda x: x[0], reverse=True)
 
-    macro_sig = None
-    if gold_r is not None and gold_r > 15:
-        macro_sig = {
-            "date": datetime.utcnow().strftime("%Y-%m-%d"),
-            "instrument": "GC=F",
-            "price_at_emission": str(round(prices["GC=F"], 2)),
-            "signal_type": "MACRO",
-            "reason": f"Gold {gold_r:+.1f}% vs baseline — extreme risk-off; defensive posture",
-        }
-    elif crude_r is not None and abs(crude_r) > 20:
-        direction = "surge" if crude_r > 0 else "crash"
-        macro_sig = {
-            "date": datetime.utcnow().strftime("%Y-%m-%d"),
-            "instrument": "CL=F",
-            "price_at_emission": str(round(prices["CL=F"], 2)),
-            "signal_type": "MACRO",
-            "reason": f"Crude {crude_r:+.1f}% — {direction}; watch BPCL/IOC/ONGC",
-        }
-    elif sp_r is not None and nsei_r is not None and abs(nsei_r - sp_r) > 15:
-        spread = nsei_r - sp_r
-        macro_sig = {
-            "date": datetime.utcnow().strftime("%Y-%m-%d"),
-            "instrument": "^NSEI",
-            "price_at_emission": str(round(prices["^NSEI"], 2)) if prices.get("^NSEI") else "",
-            "signal_type": "DIVERGENCE",
-            "reason": f"Nifty ({nsei_r:+.1f}%) vs S&P ({sp_r:+.1f}%) gap={spread:+.1f}% — convergence trade setup",
-        }
+    # Pick best overall, then best from a different market
+    signals = []
+    used_markets = set()
+    for _, market, sig in candidates:
+        if market not in used_markets:
+            signals.append(sig)
+            used_markets.add(market)
+        if len(signals) == 2:
+            break
 
-    if macro_sig and (not signals or signals[0]["instrument"] != macro_sig["instrument"]):
-        signals.append(macro_sig)
+    # Clean internal keys before returning
+    for s in signals:
+        s.pop("_market", None)
+        s.pop("_abs_r", None)
+
+    # ── Fallback: macro signal if we couldn't find 2 market signals ─────────
+    if len(signals) < 2:
+        gold_r  = pct(prices.get("GC=F"), BASELINE.get("GC=F"))
+        crude_r = pct(prices.get("CL=F"), BASELINE.get("CL=F"))
+        sp_r    = pct(prices.get("^GSPC"), BASELINE.get("^GSPC"))
+        nsei_r  = pct(prices.get("^NSEI"), BASELINE.get("^NSEI"))
+
+        if gold_r is not None and gold_r > 10:
+            signals.append({
+                "date": today, "instrument": "GC=F",
+                "price_at_emission": str(round(prices["GC=F"], 2)),
+                "signal_type": "MACRO (Global)",
+                "reason": f"Gold {gold_r:+.1f}% vs baseline — risk-off; watch equities globally",
+            })
+        elif crude_r is not None and abs(crude_r) > 15:
+            signals.append({
+                "date": today, "instrument": "CL=F",
+                "price_at_emission": str(round(prices["CL=F"], 2)),
+                "signal_type": "MACRO (Global)",
+                "reason": f"Crude {crude_r:+.1f}% — {'surge' if crude_r > 0 else 'crash'}; watch energy stocks",
+            })
+        elif sp_r is not None and nsei_r is not None and abs(nsei_r - sp_r) > 15:
+            spread = nsei_r - sp_r
+            signals.append({
+                "date": today, "instrument": "^NSEI",
+                "price_at_emission": str(round(prices["^NSEI"], 2)) if prices.get("^NSEI") else "",
+                "signal_type": "DIVERGENCE (NSE vs US)",
+                "reason": f"Nifty ({nsei_r:+.1f}%) vs S&P ({sp_r:+.1f}%) gap={spread:+.1f}% — convergence setup",
+            })
 
     return signals[:2]
 
