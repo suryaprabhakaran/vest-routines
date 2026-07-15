@@ -44,6 +44,17 @@ Output files land in `output/` and are committed by `vest-bot`, then sent to Tel
 
 ---
 
+## Job-seen registry (deduplication across days)
+
+**File:** `output/job-registry.json`  
+**Format:** `{ "url": "YYYY-MM-DD (first seen)" }`  
+**Rule:** A role is only shown for **3 days** after it was first seen. On day 4+ it is suppressed.
+
+`scripts/job_scanner.py` loads and saves this file automatically.  
+The Claude Code agent must also enforce this rule — see below.
+
+---
+
 ## Claude Code agent job scan (manual / on-demand)
 
 When the Claude Code agent runs the job scan (not the GitHub Actions script), it uses the **Indeed MCP tool** for richer results and scores the same way. It must produce **two output files**:
@@ -52,6 +63,44 @@ When the Claude Code agent runs the job scan (not the GitHub Actions script), it
 2. `output/job-scan-ramalakshmi-YYYY-MM-DD.md` — Ramalakshmi (PMO roles)
 
 Both files are sent to Telegram as documents and committed to the repo.
+
+### Registry check (required for every agent scan)
+
+Before writing the output files, the agent must:
+
+1. Load `output/job-registry.json` (empty dict `{}` if missing).
+2. For each scored role with URL `u`:
+   - If `u` is absent from the registry → include it, add `u: today` to the registry.
+   - If `u` is present and `(today - first_seen).days < 3` → include it.
+   - If `u` is present and `(today - first_seen).days >= 3` → **skip it**.
+3. After writing both output files, save the updated registry back to `output/job-registry.json` and include it in the git commit.
+
+```python
+import json, os
+from datetime import date
+
+REGISTRY = 'output/job-registry.json'
+ROLE_TTL  = 3  # days
+
+def load_reg():
+    try:
+        return json.load(open(REGISTRY))
+    except FileNotFoundError:
+        return {}
+
+def is_fresh(reg, url, today):
+    fs = reg.get(url)
+    if fs is None:
+        return True
+    return (date.fromisoformat(today) - date.fromisoformat(fs)).days < ROLE_TTL
+
+def register(reg, url, today):
+    if url not in reg:
+        reg[url] = today
+
+def save_reg(reg):
+    json.dump(reg, open(REGISTRY, 'w'), indent=2)
+```
 
 ### Ramalakshmi Indeed MCP searches (5 queries)
 - `PMO Manager`
@@ -75,3 +124,4 @@ Bot token env var: `TG_TOKEN`.
 
 - 2026-07-11: Added Ramalakshmi profile. Resume uploaded as `Ramalakshmi_P_2026.pdf`. `job_scanner.py` updated to dual-profile. CLAUDE.md created.
 - The Claude Code automated routine (system notification) previously only scanned for Surya. Going forward it scans for both.
+- 2026-07-15: Added 3-day role deduplication via `output/job-registry.json`. Both `job_scanner.py` and the Claude Code agent path enforce this.
