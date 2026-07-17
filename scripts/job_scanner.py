@@ -14,8 +14,32 @@ The Claude Code routine also runs Indeed MCP independently for richer results
 and writes its own output files with the same prefixes.
 """
 import urllib.request, urllib.parse, json, os, time, re
-from datetime import datetime
+from datetime import datetime, date
 from output_helper import publish, send_telegram_text
+
+# ── Job-seen registry (suppress roles after 3 days) ───────────────────────────
+REGISTRY_PATH = os.path.join(os.path.dirname(__file__), "..", "output", "job-registry.json")
+ROLE_TTL_DAYS = 3
+
+def load_registry():
+    try:
+        with open(REGISTRY_PATH, encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+def save_registry(registry):
+    os.makedirs(os.path.dirname(REGISTRY_PATH), exist_ok=True)
+    with open(REGISTRY_PATH, "w", encoding="utf-8") as f:
+        json.dump(registry, f, indent=2)
+
+def is_fresh(registry, url, today):
+    """Return True if this URL should be shown today (new or within TTL)."""
+    first_seen = registry.get(url)
+    if first_seen is None:
+        return True
+    age = (date.fromisoformat(today) - date.fromisoformat(first_seen)).days
+    return age < ROLE_TTL_DAYS
 
 TG_TOKEN  = os.environ["TG_TOKEN"]
 TG_CHAT_ID = os.environ["TG_CHAT_ID"]
@@ -159,8 +183,12 @@ def send_error(err):
     except:
         pass
 
-def run_scan(queries, scorer_fn, top_n=12):
-    """Run all queries through all sources, deduplicate, score, and return top_n."""
+def run_scan(queries, scorer_fn, registry, today_str, top_n=12):
+    """Run all queries through all sources, deduplicate, score, and return top_n.
+
+    Only includes jobs that are new or were first seen within ROLE_TTL_DAYS.
+    Registers newly discovered URLs in `registry` (caller must save it).
+    """
     seen_urls = set()
     all_jobs  = []
     for query in queries:
@@ -171,8 +199,12 @@ def run_scan(queries, scorer_fn, top_n=12):
                     if url in seen_urls:
                         continue
                     seen_urls.add(url)
+                    if not is_fresh(registry, url, today_str):
+                        continue
                     pct = scorer_fn(title, desc)
                     if pct >= 60:
+                        if url not in registry:
+                            registry[url] = today_str
                         all_jobs.append((pct, title, company, url, source))
             except Exception as e:
                 print(f"Error in {fn.__name__}: {e}")
@@ -206,11 +238,12 @@ def build_md(today_str, person_name, jobs):
 # ── Main ──────────────────────────────────────────────────────────────────────
 try:
     today_str = datetime.now().strftime("%Y-%m-%d")
-    print("Scanning job boards...")
+    registry  = load_registry()
+    print(f"Scanning job boards (registry: {len(registry)} known URLs)...")
 
     # Surya: Chief Enterprise Architect
     print("\n--- Surya (Enterprise Architect) ---")
-    surya_jobs = run_scan(SURYA_QUERIES, match_pct_surya, top_n=12)
+    surya_jobs = run_scan(SURYA_QUERIES, match_pct_surya, registry, today_str, top_n=12)
     surya_md   = build_md(today_str, "Surya", surya_jobs)
     print(surya_md)
     publish(TG_TOKEN, TG_CHAT_ID, surya_md, "job-scan",
@@ -218,13 +251,14 @@ try:
 
     # Ramalakshmi: PMO / Programme Manager
     print("\n--- Ramalakshmi (PMO / Programme Manager) ---")
-    rama_jobs = run_scan(RAMALAKSHMI_QUERIES, match_pct_ramalakshmi, top_n=12)
+    rama_jobs = run_scan(RAMALAKSHMI_QUERIES, match_pct_ramalakshmi, registry, today_str, top_n=12)
     rama_md   = build_md(today_str, "Ramalakshmi", rama_jobs)
     print(rama_md)
     publish(TG_TOKEN, TG_CHAT_ID, rama_md, "job-scan-ramalakshmi",
             f"💼 Vest Job Scanner · Ramalakshmi · {today_str} — {len(rama_jobs)} matches")
 
-    print("Done.")
+    save_registry(registry)
+    print(f"Done. Registry saved ({len(registry)} URLs total).")
 
 except Exception as e:
     print(f"ERROR: {e}")
