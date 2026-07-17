@@ -202,7 +202,7 @@ def run_scan(queries, scorer_fn, registry, today_str, top_n=12):
                     if not is_fresh(registry, url, today_str):
                         continue
                     pct = scorer_fn(title, desc)
-                    if pct >= 60:
+                    if pct >= 70:
                         if url not in registry:
                             registry[url] = today_str
                         all_jobs.append((pct, title, company, url, source))
