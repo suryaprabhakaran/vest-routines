@@ -64,6 +64,8 @@ When the Claude Code agent runs the job scan (not the GitHub Actions script), it
 
 Both files are sent to Telegram as documents and committed to the repo.
 
+**Match threshold:** include roles with score **>= 70%** only.
+
 ### Registry check (required for every agent scan)
 
 Before writing the output files, the agent must:
