@@ -191,7 +191,7 @@ def score_old_signals(rows, prices):
     today = datetime.utcnow().strftime("%Y-%m-%d")
     scored_count = 0
     for row in rows:
-        if row["follow_through_pct"] or row["date"] == today:
+        if row["date"] == today:
             continue
         ticker  = row["instrument"]
         p_emit  = float(row["price_at_emission"]) if row["price_at_emission"] else None
