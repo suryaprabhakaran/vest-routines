@@ -183,28 +183,40 @@ def send_error(err):
     except:
         pass
 
+def _reg_key(title, company):
+    """Canonical registry key: 'company|title' (lowercase, normalised whitespace).
+
+    Using company+title instead of URL because Indeed generates fresh redirect
+    URLs every session, which would cause the same job to appear every day.
+    """
+    import re as _re
+    def _n(s): return _re.sub(r'\s+', ' ', s.lower().strip())
+    return f"{_n(company)}|{_n(title)}"
+
+
 def run_scan(queries, scorer_fn, registry, today_str, top_n=12):
     """Run all queries through all sources, deduplicate, score, and return top_n.
 
     Only includes jobs that are new or were first seen within ROLE_TTL_DAYS.
-    Registers newly discovered URLs in `registry` (caller must save it).
+    Registers newly discovered titles in `registry` (caller must save it).
     """
-    seen_urls = set()
+    seen_keys = set()
     all_jobs  = []
     for query in queries:
         for fn in [search_adzuna, search_indeed_json, search_eurojobsites]:
             try:
                 rows = fn(query)
                 for title, company, url, desc, source in rows:
-                    if url in seen_urls:
+                    key = _reg_key(title, company)
+                    if key in seen_keys:
                         continue
-                    seen_urls.add(url)
-                    if not is_fresh(registry, url, today_str):
+                    seen_keys.add(key)
+                    if not is_fresh(registry, key, today_str):
                         continue
                     pct = scorer_fn(title, desc)
                     if pct >= 70:
-                        if url not in registry:
-                            registry[url] = today_str
+                        if key not in registry:
+                            registry[key] = today_str
                         all_jobs.append((pct, title, company, url, source))
             except Exception as e:
                 print(f"Error in {fn.__name__}: {e}")
