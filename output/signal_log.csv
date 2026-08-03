@@ -1,7 +1,9 @@
 date,instrument,price_at_emission,signal_type,reason,follow_through_pct,scored_date
-2026-07-01,HCLTECH.NS,1034.2,POSITIVE,"Tech / AI | news: ai, cloud | ▼23.6% vs baseline",14.81,2026-07-16
-2026-07-01,GC=F,4035.1,MACRO,Gold +92.2% vs baseline — extreme risk-off; defensive posture,-1.08,2026-07-16
-2026-07-06,HAL.NS,4440.6,POSITIVE,Defense / Geopolitics | news: war | ▲21.0% vs baseline,-0.15,2026-07-16
-2026-07-06,GC=F,4157.0,MACRO,Gold +98.0% vs baseline — extreme risk-off; defensive posture,-3.98,2026-07-16
-2026-07-16,MCX.NS,2815.5,POSITIVE (NSE),"Safe Haven / Gold | news: gold, silver | ▲143.8% vs baseline | price: ₹2,815.50",,
-2026-07-16,AAPL,331.39,POSITIVE (US),"Tech / AI | news: ai, chip | ▲13.8% vs baseline | price: $331.39",,
+2026-07-01,HCLTECH.NS,1034.2,POSITIVE,"Tech / AI | news: ai, cloud | ▼23.6% vs baseline",33.15,2026-08-03
+2026-07-01,GC=F,4035.1,MACRO,Gold +92.2% vs baseline — extreme risk-off; defensive posture,1.27,2026-08-03
+2026-07-06,HAL.NS,4440.6,POSITIVE,Defense / Geopolitics | news: war | ▲21.0% vs baseline,5.62,2026-08-03
+2026-07-06,GC=F,4157.0,MACRO,Gold +98.0% vs baseline — extreme risk-off; defensive posture,-1.7,2026-08-03
+2026-07-16,MCX.NS,2815.5,POSITIVE (NSE),"Safe Haven / Gold | news: gold, silver | ▲143.8% vs baseline | price: ₹2,815.50",-6.16,2026-08-03
+2026-07-16,AAPL,331.39,POSITIVE (US),"Tech / AI | news: ai, chip | ▲13.8% vs baseline | price: $331.39",-7.58,2026-08-03
+2026-08-03,TCS.NS,2473.7,POSITIVE (NSE),"Tech / AI | news: ai, cloud | ▼39.3% vs baseline | price: ₹2,473.70",,
+2026-08-03,MSFT,489.37,POSITIVE (US),"Tech / AI | news: ai, cloud | ▲26.4% vs baseline | price: $489.37",,
