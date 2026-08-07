@@ -170,6 +170,10 @@ RSS_FEEDS = {
         "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms",
         "https://www.livemint.com/rss/markets",
     ],
+    "EU": [
+        "https://www.ft.com/rss/home",           # Financial Times (may be blocked by proxy)
+        "https://www.ft.com/rss/home/uk",
+    ],
 }
 
 def fetch_news():
@@ -691,12 +695,10 @@ try:
         f"# 📊 Vest Intelligence Brief — {today_str}\n"
         f"_Run: {run_ts}_\n\n"
         f"---\n\n"
-        f"## 🔴 Today's Key Themes\n\n"
-        f"{NL.join(theme_lines)}\n\n"
-        f"---\n\n"
         f"## 🎯 Today's Top Picks\n\n"
-        f"_Indian picks are news-informed (Economic Times + Livemint). "
-        f"US/EU picks are momentum-based — live news feeds are unavailable in this environment._\n\n"
+        f"_Indian picks are news-informed (Economic Times + Livemint"
+        + (f" + Financial Times" if any(r == "EU" and headlines_by_region.get("EU") for r in headlines_by_region) else "")
+        + f"). US picks are momentum-based._\n\n"
         f"### 🇮🇳 India (NSE)\n\n"
         f"| # | Stock | Price | vs Apr'25 | Signal |\n"
         f"|---|---|---|---|---|\n"
@@ -710,11 +712,6 @@ try:
         f"|---|---|---|---|---|\n"
         f"{NL.join(pick_rows(eu_picks))}\n\n"
         f"---\n\n"
-        f"## 📊 Macro Snapshot\n\n"
-        f"| Index / Asset | Price | vs Apr'25 | |\n"
-        f"|---|---|---|---|\n"
-        f"{macro_rows}\n\n"
-        f"---\n\n"
         f"## 📅 What to Watch Tomorrow\n\n"
         f"### 🗓 Scheduled Events\n\n"
         f"{NL.join(calendar_watchlist)}\n\n"
@@ -726,6 +723,14 @@ try:
         f"| # | 🌍 | Stock | Price | vs Apr'25 | Status |\n"
         f"|---|---|---|---|---|---|\n"
         f"{NL.join(health_rows)}\n\n"
+        f"---\n\n"
+        f"## 📊 Macro Snapshot\n\n"
+        f"| Index / Asset | Price | vs Apr'25 | |\n"
+        f"|---|---|---|---|\n"
+        f"{macro_rows}\n\n"
+        f"---\n\n"
+        f"## 🔴 Today's Key Themes\n\n"
+        f"{NL.join(theme_lines)}\n\n"
         f"{ft_block}"
         f"---\n\n"
         f"## 🎯 EquityPandit\n\n"
