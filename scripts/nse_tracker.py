@@ -1,7 +1,7 @@
 """
 Vest Intelligence Brief — combined market tracker + signal log.
 Produces one daily document: vest-brief-YYYY-MM-DD.md
-Sections: Top 3 Picks (NSE/US/EU) → Macro → What to Watch → Top 15 Health → Follow-Through → EquityPandit → News
+Sections: Top 3 Picks (NSE/US/EU) → What to Watch → Top 15 Health → Macro → Key Themes → Follow-Through → News
 """
 import urllib.request, json, time, re, xml.etree.ElementTree as ET, os, csv
 from datetime import datetime
@@ -491,62 +491,6 @@ def build_watch_signals(prices, active_sectors, themes, nse_patterns):
 
     return signals[:8] if signals else ["- No strong directional signals today — range-bound open expected"]
 
-# ── EquityPandit ──────────────────────────────────────────────────────────────
-def fetch_equitypandit():
-    CLEAN = re.compile(r"<[^>]+>")
-    SPACE = re.compile(r"\s+")
-    PRED_URL = "https://www.equitypandit.com/prediction/"
-    GN_URL   = "https://www.equitypandit.com/giftnifty/"
-
-    def clean(html):
-        return SPACE.sub(" ", CLEAN.sub(" ", html)).strip()
-
-    def rss_items(url, max_items=10):
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=12) as r:
-            root = ET.fromstring(r.read().decode("utf-8", errors="replace"))
-        items = []
-        for item in list(root.iter("item"))[:max_items]:
-            title = clean(item.findtext("title", ""))
-            link  = item.findtext("link", "").strip()
-            date  = item.findtext("pubDate", "")[:16].strip()
-            desc  = clean(item.findtext("description", ""))
-            items.append((title, link, date, desc))
-        return items
-
-    pred_lines, gn_lines = [], []
-    try:
-        all_items = rss_items("https://www.equitypandit.com/feed/", max_items=15)
-        pred_keywords = ["rally","prediction","nifty","sensex","market","outlook","analysis"]
-        pred_posts = [
-            (t,l,d,desc) for t,l,d,desc in all_items
-            if any(kw in (t+desc).lower() for kw in pred_keywords)
-            and "overnight" not in t.lower()
-        ][:3]
-        for title, link, date, desc in pred_posts:
-            pred_lines.append(f"- **[{title}]({link})** _{date}_")
-            if desc:
-                pred_lines.append(f"  > {desc[:220]}")
-        if not pred_lines:
-            pred_lines.append(f"- _No prediction articles today — [View predictions]({PRED_URL})_")
-
-        gn_posts = [
-            (t,l,d,desc) for t,l,d,desc in all_items
-            if "overnight" in t.lower() or "gift nifty" in (t+desc).lower()
-        ][:1]
-        for title, link, date, desc in gn_posts:
-            gn_lines.append(f"- **[{title}]({link})** _{date}_")
-            gn_m = re.search(r'[Gg]ift\s*[Nn]ifty[^.]{0,80}?(\d{2,3},\d{3}|\d{4,6})(?:\.\d+)?', desc)
-            if gn_m:
-                gn_lines.append(f"  > Gift Nifty level: **{gn_m.group(1)}**")
-            if desc:
-                gn_lines.append(f"  > {desc[:300]}")
-        if not gn_lines:
-            gn_lines.append(f"- _No overnight report today — [View GIFT Nifty]({GN_URL})_")
-    except Exception as e:
-        pred_lines.append(f"- _Feed unavailable ({str(e)[:60]}) — [View predictions]({PRED_URL})_")
-        gn_lines.append(f"- _Feed unavailable — [View GIFT Nifty]({GN_URL})_")
-    return pred_lines, gn_lines
 
 def send_error(err):
     try:
@@ -610,10 +554,6 @@ try:
 
     # Watch signals
     watch_signals = build_watch_signals(prices, active_sectors, themes, nse_patterns)
-
-    # EquityPandit
-    print("Fetching EquityPandit...")
-    ep_pred, ep_gift = fetch_equitypandit()
 
     # Recent follow-through (last 5 scored, excluding today)
     scored_rows = sorted(
@@ -732,14 +672,6 @@ try:
         f"## 🔴 Today's Key Themes\n\n"
         f"{NL.join(theme_lines)}\n\n"
         f"{ft_block}"
-        f"---\n\n"
-        f"## 🎯 EquityPandit\n\n"
-        f"### 📈 Market Predictions\n\n"
-        f"_Source: [equitypandit.com/prediction](https://www.equitypandit.com/prediction/)_\n\n"
-        f"{NL.join(ep_pred)}\n\n"
-        f"### 🌏 GIFT Nifty\n\n"
-        f"_Source: [equitypandit.com/giftnifty](https://www.equitypandit.com/giftnifty/)_\n\n"
-        f"{NL.join(ep_gift)}\n\n"
         f"---\n\n"
         f"## 📰 News Digest\n\n"
         f"{NL.join(news_sections)}\n\n"
