@@ -3,11 +3,12 @@ name: Vest Routines
 on:
   schedule:
     - cron: '0 18 * * 0'   # Every Sunday 6pm UTC (8pm Brussels) — market tracker + job scan + signal logger
+    - cron: '7 6 * * 1-6'  # Mon-Sat 6:07am UTC — job scan only (daily digest; Sunday already covered above)
   workflow_dispatch:         # Manual trigger from Claude Code or GitHub UI
 
 jobs:
   nse-tracker:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 18')
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 18 * * 0'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -30,7 +31,7 @@ jobs:
           git pull --rebase origin main && git push
 
   job-scanner:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 18')
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 18 * * 0' || github.event.schedule == '7 6 * * 1-6'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -53,7 +54,7 @@ jobs:
           git pull --rebase origin main && git push
 
   signal-logger:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 18')
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 18 * * 0'
     runs-on: ubuntu-latest
     permissions:
       contents: write
