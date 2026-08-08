@@ -2,12 +2,13 @@ name: Vest Routines
 
 on:
   schedule:
-    - cron: '0 18 * * 0'   # Every Sunday 6pm UTC (8pm Brussels) — market tracker + job scan + signal logger
+    - cron: '0 17 * * *'   # Daily 5pm UTC — Vest Intelligence Brief (market tracker + signal log)
+    - cron: '0 18 * * 0'   # Sunday 6pm UTC — Job scans (Surya + Ramalakshmi)
   workflow_dispatch:         # Manual trigger from Claude Code or GitHub UI
 
 jobs:
-  nse-tracker:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 18')
+  vest-brief:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 17') || startsWith(github.event.schedule, '0 18')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -16,7 +17,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Run NSE tracker
+      - name: Run Vest Intelligence Brief
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
@@ -25,8 +26,8 @@ jobs:
         run: |
           git config user.name "vest-bot"
           git config user.email "vest-bot@users.noreply.github.com"
-          git add output/
-          git diff --cached --quiet || git commit -m "chore: market tracker output $(date -u +%Y-%m-%d)"
+          git add output/vest-brief-*.md output/signal_log.csv
+          git diff --cached --quiet || git commit -m "chore: vest brief $(date -u +%Y-%m-%d)"
           git pull --rebase origin main && git push
 
   job-scanner:
@@ -50,27 +51,4 @@ jobs:
           git config user.email "vest-bot@users.noreply.github.com"
           git add output/
           git diff --cached --quiet || git commit -m "chore: job scan output $(date -u +%Y-%m-%d)"
-          git pull --rebase origin main && git push
-
-  signal-logger:
-    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 18')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Run signal logger
-        env:
-          TG_TOKEN: ${{ secrets.TG_TOKEN }}
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-        run: cd scripts && python signal_logger.py
-      - name: Commit signal log
-        run: |
-          git config user.name "vest-bot"
-          git config user.email "vest-bot@users.noreply.github.com"
-          git add output/signal_log.csv output/signal-log-*.md
-          git diff --cached --quiet || git commit -m "chore: signal log $(date -u +%Y-%m-%d)"
           git pull --rebase origin main && git push
