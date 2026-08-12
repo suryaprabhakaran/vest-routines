@@ -138,21 +138,26 @@ def append_picks_to_log(rows, picks, today):
             })
 
 # ── News ──────────────────────────────────────────────────────────────────────
-# US/EU RSS feeds return 403 through this proxy; only Indian feeds work.
+# Only economictimes.indiatimes.com and livemint.com are accessible through
+# the proxy. FT and all other international domains return 403.
+# ET International Markets is the closest equivalent to FT global coverage.
 RSS_FEEDS = {
     "IN": [
-        "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms",
+        "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms",     # ET Markets
+        "https://economictimes.indiatimes.com/markets/stocks/rssfeeds/2146842.cms", # ET Stocks
+        "https://economictimes.indiatimes.com/economy/rssfeeds/1373380680.cms",     # ET Economy/Macro
         "https://www.livemint.com/rss/markets",
+        "https://www.livemint.com/rss/companies",
     ],
-    "EU": [
-        "https://www.ft.com/rss/home",           # Financial Times (may be blocked by proxy)
-        "https://www.ft.com/rss/home/uk",
+    "GLOBAL": [
+        "https://economictimes.indiatimes.com/rssfeedsdefault.cms",  # ET general — includes US/global market news
+        "https://www.livemint.com/rss/economy",                      # Livemint Economy — US CPI, Fed, macro
     ],
 }
 
 def fetch_news():
     all_text = []
-    by_region = {"IN": [], "US": [], "EU": []}
+    by_region = {"IN": [], "GLOBAL": []}
     for region, feeds in RSS_FEEDS.items():
         for url in feeds:
             try:
@@ -164,7 +169,7 @@ def fetch_news():
                     desc  = STRIP.sub("", item.findtext("description", "")).strip()
                     if title:
                         all_text.append((title + " " + desc).lower())
-                        if len(by_region[region]) < 5:
+                        if len(by_region[region]) < 8:
                             by_region[region].append(title)
             except Exception as e:
                 print(f"Feed error {url}: {e}")
@@ -597,12 +602,12 @@ try:
         )
 
     # News digest
-    flag_map = {"IN": "🇮🇳", "US": "🇺🇸", "EU": "🇪🇺"}
+    flag_map = {"IN": "🇮🇳 India", "GLOBAL": "🌍 Global Markets (via ET / Livemint)"}
     news_sections = []
     for region, items in headlines_by_region.items():
         if items:
-            bullets = NL.join(f"- {h}" for h in items[:5])
-            news_sections.append(f"### {flag_map[region]} {region}\n{bullets}")
+            bullets = NL.join(f"- {h}" for h in items[:8])
+            news_sections.append(f"### {flag_map.get(region, region)}\n{bullets}")
 
     # ── Assemble markdown ─────────────────────────────────────────────────────
     ft_block = (

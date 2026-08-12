@@ -29,3 +29,8 @@ date,instrument,price_at_emission,signal_type,reason,follow_through_pct,scored_d
 2026-08-12,ASML.AS,1567.0,PICK (EU),Tech / AI · 4 news signals · +117.6% vs Apr'25,,
 2026-08-12,BANKBARODA.NS,251.0,PICK (NSE),Banking & Rates · 7 news hits · +1.9% today,,
 2026-08-12,SBIN.NS,1082.0,PICK (NSE),Banking & Rates · 7 news hits · +1.5% today,,
+2026-08-12,SIE.DE,281.95,PICK (EU),Auto / EV · 4 news hits · +0.6% today,,
+2026-08-12,RELIANCE.NS,1329.0,PICK (NSE),Trade / Macro · 10 news hits · +0.4% today,,
+2026-08-12,MARUTI.NS,13875.0,PICK (NSE),Trade / Macro · 10 news hits · -0.8% today,,
+2026-08-12,AMZN,267.28,PICK (US),Trade / Macro · 10 news hits · -1.8% today,,
+2026-08-12,MSFT,492.43,PICK (US),Trade / Macro · 10 news hits · -2.3% today,,
