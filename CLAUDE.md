@@ -64,7 +64,7 @@ When the Claude Code agent runs the job scan (not the GitHub Actions script), it
 
 Both files are sent to Telegram as documents and committed to the repo.
 
-**Match threshold:** include roles with score **>= 70%** only.
+**Match threshold:** include roles with score **>= 80%** only.
 
 ### Registry check (required for every agent scan)
 
@@ -127,3 +127,4 @@ Bot token env var: `TG_TOKEN`.
 - 2026-07-11: Added Ramalakshmi profile. Resume uploaded as `Ramalakshmi_P_2026.pdf`. `job_scanner.py` updated to dual-profile. CLAUDE.md created.
 - The Claude Code automated routine (system notification) previously only scanned for Surya. Going forward it scans for both.
 - 2026-07-15: Added 3-day role deduplication via `output/job-registry.json`. Both `job_scanner.py` and the Claude Code agent path enforce this.
+- 2026-08-14: Raised match threshold from 70% to 80% in both `job_scanner.py` and the Claude Code agent path.
