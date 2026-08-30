@@ -1,29 +1,38 @@
 date,instrument,price_at_emission,signal_type,reason,follow_through_pct,scored_date
-2026-07-01,HCLTECH.NS,1034.2,POSITIVE,"Tech / AI | news: ai, cloud | ▼23.6% vs baseline",32.47,2026-08-13
-2026-07-01,GC=F,4035.1,MACRO,Gold +92.2% vs baseline — extreme risk-off; defensive posture,9.14,2026-08-13
-2026-07-06,HAL.NS,4440.6,POSITIVE,Defense / Geopolitics | news: war | ▲21.0% vs baseline,11.36,2026-08-13
-2026-07-06,GC=F,4157.0,MACRO,Gold +98.0% vs baseline — extreme risk-off; defensive posture,5.94,2026-08-13
-2026-07-16,MCX.NS,2815.5,POSITIVE (NSE),"Safe Haven / Gold | news: gold, silver | ▲143.8% vs baseline | price: ₹2,815.50",5.49,2026-08-13
-2026-07-16,AAPL,331.39,POSITIVE (US),"Tech / AI | news: ai, chip | ▲13.8% vs baseline | price: $331.39",-8.24,2026-08-13
-2026-08-06,MCX.NS,2640.0,POSITIVE (NSE),"Safe Haven / Gold | news: gold, silver | ▲128.6% vs baseline | price: ₹2,640.00",12.5,2026-08-13
-2026-08-06,MSFT,497.06,POSITIVE (US),Tech / AI | news: ai | ▲28.4% vs baseline | price: $497.06,0.01,2026-08-13
-2026-08-07,ICICIBANK.NS,1421.0,PICK (NSE),Banking & Rates · 5 news signals · +17.2% vs Apr'25,-1.0,2026-08-13
-2026-08-07,HAL.NS,4910.0,PICK (NSE),Defense / Geopolitics · 1 news signal · +33.8% vs Apr'25,0.71,2026-08-13
-2026-08-07,CIPLA.NS,1463.8,PICK (NSE),Pharma / Healthcare · 2 news signals · +22.4% vs Apr'25,-0.34,2026-08-13
-2026-08-07,JPM,356.3,PICK (US),Banking & Rates · 5 news signals · +49.6% vs Apr'25,2.06,2026-08-13
-2026-08-07,GS,1032.58,PICK (US),Banking & Rates · 5 news signals · +91.8% vs Apr'25,1.36,2026-08-13
-2026-08-07,BAC,63.0,PICK (US),Banking & Rates · 5 news signals · +43.5% vs Apr'25,1.71,2026-08-13
-2026-08-07,HSBA.L,1544.2,PICK (EU),Banking & Rates · 5 news signals · +97.5% vs Apr'25,-1.19,2026-08-13
-2026-08-07,BARC.L,524.0,PICK (EU),Banking & Rates · 5 news signals · +88.5% vs Apr'25,-0.95,2026-08-13
-2026-08-07,NOVN.SW,126.84,PICK (EU),Pharma / Healthcare · 2 news signals · +45.0% vs Apr'25,-2.44,2026-08-13
-2026-08-07,KOTAKBANK.NS,390.75,PICK (NSE),Banking & Rates · 6 news signals · +9.7% vs Apr'25,0.42,2026-08-13
-2026-08-07,SIE.DE,280.2,PICK (EU),Auto / EV · 4 news signals · +30.3% vs Apr'25,1.39,2026-08-13
-2026-08-13,ICICIBANK.NS,1406.8,PICK (NSE),Banking & Rates · 8 news signals · +16.0% vs Apr'25,,
-2026-08-13,KOTAKBANK.NS,392.4,PICK (NSE),Banking & Rates · 8 news signals · +10.2% vs Apr'25,,
-2026-08-13,SBIN.NS,1083.0,PICK (NSE),Banking & Rates · 8 news signals · +6.4% vs Apr'25,,
-2026-08-13,JPM,363.64,PICK (US),Banking & Rates · 8 news signals · +52.6% vs Apr'25,,
-2026-08-13,GS,1046.65,PICK (US),Banking & Rates · 8 news signals · +94.4% vs Apr'25,,
-2026-08-13,BAC,64.08,PICK (US),Banking & Rates · 8 news signals · +46.0% vs Apr'25,,
-2026-08-13,HSBA.L,1525.8,PICK (EU),Banking & Rates · 8 news signals · +95.1% vs Apr'25,,
-2026-08-13,BARC.L,519.0,PICK (EU),Banking & Rates · 8 news signals · +86.7% vs Apr'25,,
-2026-08-13,ASML.AS,1609.4,PICK (EU),Tech / AI · 4 news signals · +123.5% vs Apr'25,,
+2026-07-01,HCLTECH.NS,1034.2,POSITIVE,"Tech / AI | news: ai, cloud | ▼23.6% vs baseline",27.26,2026-08-30
+2026-07-01,GC=F,4035.1,MACRO,Gold +92.2% vs baseline — extreme risk-off; defensive posture,12.26,2026-08-30
+2026-07-06,HAL.NS,4440.6,POSITIVE,Defense / Geopolitics | news: war | ▲21.0% vs baseline,9.47,2026-08-30
+2026-07-06,GC=F,4157.0,MACRO,Gold +98.0% vs baseline — extreme risk-off; defensive posture,8.97,2026-08-30
+2026-07-16,MCX.NS,2815.5,POSITIVE (NSE),"Safe Haven / Gold | news: gold, silver | ▲143.8% vs baseline | price: ₹2,815.50",18.34,2026-08-30
+2026-07-16,AAPL,331.39,POSITIVE (US),"Tech / AI | news: ai, chip | ▲13.8% vs baseline | price: $331.39",-3.53,2026-08-30
+2026-08-06,MCX.NS,2640.0,POSITIVE (NSE),"Safe Haven / Gold | news: gold, silver | ▲128.6% vs baseline | price: ₹2,640.00",26.21,2026-08-30
+2026-08-06,MSFT,497.06,POSITIVE (US),Tech / AI | news: ai | ▲28.4% vs baseline | price: $497.06,3.31,2026-08-30
+2026-08-07,ICICIBANK.NS,1421.0,PICK (NSE),Banking & Rates · 5 news signals · +17.2% vs Apr'25,0.13,2026-08-30
+2026-08-07,HAL.NS,4910.0,PICK (NSE),Defense / Geopolitics · 1 news signal · +33.8% vs Apr'25,-1.0,2026-08-30
+2026-08-07,CIPLA.NS,1463.8,PICK (NSE),Pharma / Healthcare · 2 news signals · +22.4% vs Apr'25,-2.75,2026-08-30
+2026-08-07,JPM,356.3,PICK (US),Banking & Rates · 5 news signals · +49.6% vs Apr'25,0.37,2026-08-30
+2026-08-07,GS,1032.58,PICK (US),Banking & Rates · 5 news signals · +91.8% vs Apr'25,0.14,2026-08-30
+2026-08-07,BAC,63.0,PICK (US),Banking & Rates · 5 news signals · +43.5% vs Apr'25,-1.08,2026-08-30
+2026-08-07,HSBA.L,1544.2,PICK (EU),Banking & Rates · 5 news signals · +97.5% vs Apr'25,-1.02,2026-08-30
+2026-08-07,BARC.L,524.0,PICK (EU),Banking & Rates · 5 news signals · +88.5% vs Apr'25,-5.22,2026-08-30
+2026-08-07,NOVN.SW,126.84,PICK (EU),Pharma / Healthcare · 2 news signals · +45.0% vs Apr'25,-2.44,2026-08-30
+2026-08-07,KOTAKBANK.NS,390.75,PICK (NSE),Banking & Rates · 6 news signals · +9.7% vs Apr'25,8.43,2026-08-30
+2026-08-07,SIE.DE,280.2,PICK (EU),Auto / EV · 4 news signals · +30.3% vs Apr'25,3.44,2026-08-30
+2026-08-13,ICICIBANK.NS,1406.8,PICK (NSE),Banking & Rates · 8 news signals · +16.0% vs Apr'25,1.14,2026-08-30
+2026-08-13,KOTAKBANK.NS,392.4,PICK (NSE),Banking & Rates · 8 news signals · +10.2% vs Apr'25,7.98,2026-08-30
+2026-08-13,SBIN.NS,1083.0,PICK (NSE),Banking & Rates · 8 news signals · +6.4% vs Apr'25,-3.28,2026-08-30
+2026-08-13,JPM,363.64,PICK (US),Banking & Rates · 8 news signals · +52.6% vs Apr'25,-1.66,2026-08-30
+2026-08-13,GS,1046.65,PICK (US),Banking & Rates · 8 news signals · +94.4% vs Apr'25,-1.21,2026-08-30
+2026-08-13,BAC,64.08,PICK (US),Banking & Rates · 8 news signals · +46.0% vs Apr'25,-2.75,2026-08-30
+2026-08-13,HSBA.L,1525.8,PICK (EU),Banking & Rates · 8 news signals · +95.1% vs Apr'25,0.17,2026-08-30
+2026-08-13,BARC.L,519.0,PICK (EU),Banking & Rates · 8 news signals · +86.7% vs Apr'25,-4.31,2026-08-30
+2026-08-13,ASML.AS,1609.4,PICK (EU),Tech / AI · 4 news signals · +123.5% vs Apr'25,-7.15,2026-08-30
+2026-08-30,KOTAKBANK.NS,423.7,PICK (NSE),Banking & Rates · 6 news signals · +19.0% vs Apr'25,,
+2026-08-30,ICICIBANK.NS,1422.8,PICK (NSE),Banking & Rates · 6 news signals · +17.3% vs Apr'25,,
+2026-08-30,HAL.NS,4861.1,PICK (NSE),Defense / Geopolitics · 2 news signals · +32.4% vs Apr'25,,
+2026-08-30,JPM,357.62,PICK (US),Banking & Rates · 6 news signals · +50.1% vs Apr'25,,
+2026-08-30,GS,1033.99,PICK (US),Banking & Rates · 6 news signals · +92.0% vs Apr'25,,
+2026-08-30,BAC,62.32,PICK (US),Banking & Rates · 6 news signals · +42.0% vs Apr'25,,
+2026-08-30,HSBA.L,1528.4,PICK (EU),Banking & Rates · 6 news signals · +95.4% vs Apr'25,,
+2026-08-30,BARC.L,496.65,PICK (EU),Banking & Rates · 6 news signals · +78.7% vs Apr'25,,
+2026-08-30,SIE.DE,289.85,PICK (EU),Auto / EV · 2 news signals · +34.8% vs Apr'25,,
