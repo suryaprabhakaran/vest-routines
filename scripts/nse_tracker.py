@@ -125,6 +125,50 @@ EU_UNIVERSE = [
 
 STRIP = re.compile(r"<[^>]+>")
 
+# ── Portfolio ─────────────────────────────────────────────────────────────────
+PORTFOLIO_PATH = os.path.join(SCRIPTS_DIR, "..", "portfolio", "holdings.csv")
+
+def load_portfolio():
+    if not os.path.exists(PORTFOLIO_PATH):
+        return []
+    with open(PORTFOLIO_PATH, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    return [r["Symbol"].strip() for r in rows if r.get("Symbol", "").strip()]
+
+def portfolio_signal(ticker, prices, active_sectors, pick_tickers, gold_r, crude_r):
+    p = prices.get(ticker)
+    p_s = price_str(ticker, p) if p else "N/A"
+
+    # Macro overrides — specific negative conditions first
+    if crude_r is not None and crude_r > 10:
+        if ticker in ["BPCL.NS", "IOC.NS", "HINDPETRO.NS"]:
+            cp = prices.get("CL=F", 0)
+            return p_s, "🔴 Trim", f"Crude at ${cp:.0f} — OMC margin squeeze"
+
+    if gold_r is not None and gold_r > 8:
+        if ticker in ["HDFCBANK.NS", "ICICIBANK.NS", "SBIN.NS", "AXISBANK.NS", "KOTAKBANK.NS"]:
+            return p_s, "🟡 Hold", "Strong risk-off (gold elevated) — FII pressure on banks"
+        if ticker in ["TCS.NS", "INFY.NS", "WIPRO.NS", "HCLTECH.NS", "TECHM.NS"]:
+            return p_s, "🟡 Hold", "Risk-off environment — monitor IT export sentiment"
+
+    # In today's top picks → strong buy
+    if ticker in pick_tickers:
+        return p_s, "🟢 Accumulate", "In today's top picks — news-backed momentum"
+
+    # Sector check
+    for s in GLOBAL_SECTORS:
+        if ticker in s.get("nse", []) + s.get("global", []):
+            is_active = any(a["name"] == s["name"] for a in active_sectors)
+            if is_active and s["signal"] == "positive":
+                return p_s, "🟢 Accumulate", f"{s['name']} in focus — positive news today"
+            if is_active and s["signal"] == "negative":
+                return p_s, "🔴 Trim", f"{s['name']} headwinds in today's news"
+            if is_active and s["signal"] == "speculative":
+                return p_s, "🟡 Hold", f"{s['name']} active but speculative — no clear edge"
+            break
+
+    return p_s, "🟡 Hold", "No strong signal today"
+
 # ── Signal log ────────────────────────────────────────────────────────────────
 def load_log():
     if not os.path.exists(LOG_PATH):
@@ -517,6 +561,9 @@ try:
         prices[t] = get_price(t)
         time.sleep(0.15)
 
+    # Portfolio signals
+    holdings = load_portfolio()
+
     # Score prior signal log entries with today's prices
     score_old_signals(log_rows, prices)
 
@@ -537,14 +584,38 @@ try:
     # Combined pattern health top 15
     health15 = build_top15_health(prices, active_sectors, combined_news)
 
+    # Macro levels used by both watch signals and portfolio signals
+    gold_r  = pct(prices.get("GC=F"),  BASELINE.get("GC=F"))
+    crude_r = pct(prices.get("CL=F"),  BASELINE.get("CL=F"))
+
     # Watch signals
     watch_signals = build_watch_signals(prices, active_sectors, themes, nse_patterns)
+
+    # Portfolio signals
+    pick_tickers = [t for t, *_ in nse_picks + us_picks + eu_picks]
+    portfolio_rows = []
+    for sym in holdings:
+        p_s, sig, reason = portfolio_signal(sym, prices, active_sectors, pick_tickers, gold_r, crude_r)
+        name = re.sub(r"\.(NS|AS|DE|PA|L|SW)$", "", sym)
+        portfolio_rows.append(f"| {region_flag(sym)} **{name}** | {p_s} | {sig} | {reason} |")
 
     # Recent follow-through (last 5 scored, excluding today)
     scored_rows = sorted(
         [r for r in log_rows if r["follow_through_pct"] and r["date"] != today_str],
         key=lambda r: r["date"], reverse=True
     )[:5]
+
+    # ── Portfolio block ───────────────────────────────────────────────────────
+    portfolio_block = ""
+    if portfolio_rows:
+        portfolio_block = (
+            f"---\n\n"
+            f"## 💼 Portfolio Signals\n\n"
+            f"_Based on today's news themes and macro levels_\n\n"
+            f"| Stock | Price | Signal | Reason |\n"
+            f"|---|---|---|---|\n"
+            f"{NL.join(portfolio_rows)}\n\n"
+        )
 
     # ── Build sections ────────────────────────────────────────────────────────
 
@@ -633,6 +704,7 @@ try:
         f"| # | Stock | Price | Signal |\n"
         f"|---|---|---|---|\n"
         f"{NL.join(pick_rows(eu_picks))}\n\n"
+        f"{portfolio_block}"
         f"---\n\n"
         f"## 📅 What to Watch Tomorrow\n\n"
         f"### 🗓 Scheduled Events\n\n"
