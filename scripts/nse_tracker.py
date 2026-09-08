@@ -125,6 +125,50 @@ EU_UNIVERSE = [
 
 STRIP = re.compile(r"<[^>]+>")
 
+# ── Portfolio ─────────────────────────────────────────────────────────────────
+PORTFOLIO_PATH = os.path.join(SCRIPTS_DIR, "..", "portfolio", "holdings.csv")
+
+def load_portfolio():
+    if not os.path.exists(PORTFOLIO_PATH):
+        return []
+    with open(PORTFOLIO_PATH, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    return [r["Symbol"].strip() for r in rows if r.get("Symbol", "").strip()]
+
+def portfolio_signal(ticker, prices, active_sectors, pick_tickers, gold_r, crude_r):
+    p = prices.get(ticker)
+    p_s = price_str(ticker, p) if p else "N/A"
+
+    # Macro overrides — specific negative conditions first
+    if crude_r is not None and crude_r > 10:
+        if ticker in ["BPCL.NS", "IOC.NS", "HINDPETRO.NS"]:
+            cp = prices.get("CL=F", 0)
+            return p_s, "🔴 Trim", f"Crude at ${cp:.0f} — OMC margin squeeze"
+
+    if gold_r is not None and gold_r > 8:
+        if ticker in ["HDFCBANK.NS", "ICICIBANK.NS", "SBIN.NS", "AXISBANK.NS", "KOTAKBANK.NS"]:
+            return p_s, "🟡 Hold", "Strong risk-off (gold elevated) — FII pressure on banks"
+        if ticker in ["TCS.NS", "INFY.NS", "WIPRO.NS", "HCLTECH.NS", "TECHM.NS"]:
+            return p_s, "🟡 Hold", "Risk-off environment — monitor IT export sentiment"
+
+    # In today's top picks → strong buy
+    if ticker in pick_tickers:
+        return p_s, "🟢 Accumulate", "In today's top picks — news-backed momentum"
+
+    # Sector check
+    for s in GLOBAL_SECTORS:
+        if ticker in s.get("nse", []) + s.get("global", []):
+            is_active = any(a["name"] == s["name"] for a in active_sectors)
+            if is_active and s["signal"] == "positive":
+                return p_s, "🟢 Accumulate", f"{s['name']} in focus — positive news today"
+            if is_active and s["signal"] == "negative":
+                return p_s, "🔴 Trim", f"{s['name']} headwinds in today's news"
+            if is_active and s["signal"] == "speculative":
+                return p_s, "🟡 Hold", f"{s['name']} active but speculative — no clear edge"
+            break
+
+    return p_s, "🟡 Hold", "No strong signal today"
+
 # ── Signal log ────────────────────────────────────────────────────────────────
 def load_log():
     if not os.path.exists(LOG_PATH):
@@ -369,30 +413,29 @@ def news_hits_for(ticker, active_sectors, combined_news):
     return best_hits, best_sector
 
 def pick_top3(universe, prices, active_sectors, combined_news, region_label):
-    """Score universe stocks by news hits + capped momentum; return top 3."""
+    """Score universe stocks by news hits; return top 3."""
     scored = []
     for ticker, name in universe:
         p = prices.get(ticker)
-        r = pct(p, BASELINE.get(ticker))
-        if r is None:
+        if p is None:
             continue
         nhits, sector = news_hits_for(ticker, active_sectors, combined_news)
-        score = (nhits * 4.0) + min(max(r, -30.0), 30.0)
-        scored.append((score, ticker, name, p, r, nhits, sector))
+        score = nhits * 4.0
+        scored.append((score, ticker, name, p, nhits, sector))
     scored.sort(reverse=True)
 
     result = []
-    for score, ticker, name, p, r, nhits, sector in scored[:3]:
+    for score, ticker, name, p, nhits, sector in scored[:3]:
         signal_type = f"PICK ({region_label})"
         if nhits > 0:
-            reason = f"{sector} · {nhits} news signal{'s' if nhits > 1 else ''} · {r:+.1f}% vs Apr'25"
+            reason = f"{sector} · {nhits} news signal{'s' if nhits > 1 else ''}"
         else:
-            reason = f"{sector or 'Momentum'} · {r:+.1f}% vs Apr'25"
-        result.append((ticker, name, r, signal_type, reason, p, nhits))
+            reason = sector or "Momentum"
+        result.append((ticker, name, None, signal_type, reason, p, nhits))
     return result
 
 def build_top15_health(prices, active_sectors, combined_news):
-    """Pool all universe stocks, score by news×3 + abs_momentum(cap 50), return top 15."""
+    """Pool all universe stocks, score by news hits, return top 15."""
     all_stocks = NSE_UNIVERSE + US_UNIVERSE + EU_UNIVERSE
     scored = []
     seen = set()
@@ -401,11 +444,11 @@ def build_top15_health(prices, active_sectors, combined_news):
             continue
         seen.add(ticker)
         p = prices.get(ticker)
-        r = pct(p, BASELINE.get(ticker))
-        if r is None:
+        if p is None:
             continue
+        r = pct(p, BASELINE.get(ticker))
         nhits, sector = news_hits_for(ticker, active_sectors, combined_news)
-        score = (nhits * 3) + min(abs(r), 50)
+        score = nhits * 3
         scored.append((score, ticker, name, p, r, nhits, sector))
     scored.sort(reverse=True)
     return scored[:15]
@@ -413,20 +456,6 @@ def build_top15_health(prices, active_sectors, combined_news):
 # ── Watch signals ─────────────────────────────────────────────────────────────
 def build_watch_signals(prices, active_sectors, themes, nse_patterns):
     signals = []
-
-    movers = []
-    for ticker, p_val in prices.items():
-        if ticker in ("GC=F","CL=F") or ticker.startswith("^"):
-            continue
-        r = pct(p_val, BASELINE.get(ticker))
-        if r is not None:
-            name = re.sub(r"\.(NS|AS|DE|PA|L|SW)$", "", ticker).replace("=F","")
-            movers.append((abs(r), r, name, ticker))
-    movers.sort(reverse=True)
-    for _, r, name, ticker in movers[:2]:
-        direction = f"up {r:+.1f}%" if r > 0 else f"down {r:.1f}%"
-        flag = region_flag(ticker)
-        signals.append(f"- {flag} **{name}** is {direction} vs Apr'25 baseline — watch for continuation or mean-reversion")
 
     gold_r  = pct(prices.get("GC=F"),  BASELINE.get("GC=F"))
     crude_r = pct(prices.get("CL=F"),  BASELINE.get("CL=F"))
@@ -436,18 +465,18 @@ def build_watch_signals(prices, active_sectors, themes, nse_patterns):
     if gold_r is not None:
         gp = prices.get("GC=F")
         if gold_r > 8:
-            signals.append(f"- 🥇 Gold at ${gp:,.0f} ({gold_r:+.1f}% vs baseline) — strong risk-off; expect pressure on HDFC Bank, IT exports")
+            signals.append(f"- 🥇 Gold at ${gp:,.0f} — strong risk-off; expect pressure on HDFC Bank, IT exports")
         elif gold_r > 3:
-            signals.append(f"- 🥇 Gold at ${gp:,.0f} ({gold_r:+.1f}%) — mild risk-off; monitor FII flows into India")
+            signals.append(f"- 🥇 Gold at ${gp:,.0f} — mild risk-off; monitor FII flows into India")
         elif gold_r < -5:
-            signals.append(f"- 🥇 Gold at ${gp:,.0f} ({gold_r:.1f}%) — risk-on; equities may see follow-through buying")
+            signals.append(f"- 🥇 Gold at ${gp:,.0f} — risk-on; equities may see follow-through buying")
 
     if crude_r is not None:
         cp = prices.get("CL=F")
         if crude_r > 10:
-            signals.append(f"- 🛢️ WTI at ${cp:.1f} ({crude_r:+.1f}%) — elevated crude; OMC margins under pressure (BPCL, IOC)")
+            signals.append(f"- 🛢️ WTI at ${cp:.1f} — elevated crude; OMC margins under pressure (BPCL, IOC)")
         elif crude_r < -10:
-            signals.append(f"- 🛢️ WTI at ${cp:.1f} ({crude_r:.1f}%) — crude falling; OMC cost relief; watch BPCL, IOC for rally")
+            signals.append(f"- 🛢️ WTI at ${cp:.1f} — crude falling; OMC cost relief; watch BPCL, IOC for rally")
 
     if sp_r is not None and nsei_r is not None:
         spread = nsei_r - sp_r
@@ -532,6 +561,9 @@ try:
         prices[t] = get_price(t)
         time.sleep(0.15)
 
+    # Portfolio signals
+    holdings = load_portfolio()
+
     # Score prior signal log entries with today's prices
     score_old_signals(log_rows, prices)
 
@@ -552,14 +584,38 @@ try:
     # Combined pattern health top 15
     health15 = build_top15_health(prices, active_sectors, combined_news)
 
+    # Macro levels used by both watch signals and portfolio signals
+    gold_r  = pct(prices.get("GC=F"),  BASELINE.get("GC=F"))
+    crude_r = pct(prices.get("CL=F"),  BASELINE.get("CL=F"))
+
     # Watch signals
     watch_signals = build_watch_signals(prices, active_sectors, themes, nse_patterns)
+
+    # Portfolio signals
+    pick_tickers = [t for t, *_ in nse_picks + us_picks + eu_picks]
+    portfolio_rows = []
+    for sym in holdings:
+        p_s, sig, reason = portfolio_signal(sym, prices, active_sectors, pick_tickers, gold_r, crude_r)
+        name = re.sub(r"\.(NS|AS|DE|PA|L|SW)$", "", sym)
+        portfolio_rows.append(f"| {region_flag(sym)} **{name}** | {p_s} | {sig} | {reason} |")
 
     # Recent follow-through (last 5 scored, excluding today)
     scored_rows = sorted(
         [r for r in log_rows if r["follow_through_pct"] and r["date"] != today_str],
         key=lambda r: r["date"], reverse=True
     )[:5]
+
+    # ── Portfolio block ───────────────────────────────────────────────────────
+    portfolio_block = ""
+    if portfolio_rows:
+        portfolio_block = (
+            f"---\n\n"
+            f"## 💼 Portfolio Signals\n\n"
+            f"_Based on today's news themes and macro levels_\n\n"
+            f"| Stock | Price | Signal | Reason |\n"
+            f"|---|---|---|---|\n"
+            f"{NL.join(portfolio_rows)}\n\n"
+        )
 
     # ── Build sections ────────────────────────────────────────────────────────
 
@@ -571,9 +627,8 @@ try:
     # Macro snapshot
     def macro_row(ticker, label, currency="", decimals=0):
         p = prices.get(ticker)
-        r = pct(p, BASELINE.get(ticker))
         p_s = f"{currency}{p:,.{decimals}f}" if p else "N/A"
-        return f"| {label} | {p_s} | {fmt(r)} | {trend(r)} |"
+        return f"| {label} | {p_s} |"
 
     macro_rows = NL.join([
         macro_row("^NSEI",  "🇮🇳 Nifty 50"),
@@ -589,9 +644,8 @@ try:
         rows = []
         for i, (ticker, name, r, _, reason, p, nhits) in enumerate(picks, 1):
             p_s   = price_str(ticker, p)
-            r_s   = fmt(r)
             signal = f"⚡ {nhits} news hit{'s' if nhits > 1 else ''}" if nhits > 0 else "📊 Momentum"
-            rows.append(f"| {i} | **{name}** | {p_s} | {r_s} | {signal} |")
+            rows.append(f"| {i} | **{name}** | {p_s} | {signal} |")
         return rows
 
     # Health top 15
@@ -599,9 +653,8 @@ try:
     for rank, (score, ticker, name, p, r, nhits, sector) in enumerate(health15, 1):
         flag  = region_flag(ticker)
         p_s   = price_str(ticker, p)
-        r_s   = fmt(r)
         news_tag = " ⚡" if nhits > 0 else ""
-        health_rows.append(f"| {rank} | {flag} | **{name}** | {p_s} | {r_s} | {stock_status(r)}{news_tag} |")
+        health_rows.append(f"| {rank} | {flag} | **{name}** | {p_s} | {stock_status(r)}{news_tag} |")
 
     # Follow-through
     ft_rows = []
@@ -640,17 +693,18 @@ try:
         + (f" + Financial Times" if any(r == "EU" and headlines_by_region.get("EU") for r in headlines_by_region) else "")
         + f"). US picks are momentum-based._\n\n"
         f"### 🇮🇳 India (NSE)\n\n"
-        f"| # | Stock | Price | vs Apr'25 | Signal |\n"
-        f"|---|---|---|---|---|\n"
+        f"| # | Stock | Price | Signal |\n"
+        f"|---|---|---|---|\n"
         f"{NL.join(pick_rows(nse_picks))}\n\n"
         f"### 🇺🇸 United States\n\n"
-        f"| # | Stock | Price | vs Apr'25 | Signal |\n"
-        f"|---|---|---|---|---|\n"
+        f"| # | Stock | Price | Signal |\n"
+        f"|---|---|---|---|\n"
         f"{NL.join(pick_rows(us_picks))}\n\n"
         f"### 🇪🇺 Europe\n\n"
-        f"| # | Stock | Price | vs Apr'25 | Signal |\n"
-        f"|---|---|---|---|---|\n"
+        f"| # | Stock | Price | Signal |\n"
+        f"|---|---|---|---|\n"
         f"{NL.join(pick_rows(eu_picks))}\n\n"
+        f"{portfolio_block}"
         f"---\n\n"
         f"## 📅 What to Watch Tomorrow\n\n"
         f"### 🗓 Scheduled Events\n\n"
@@ -659,14 +713,14 @@ try:
         f"{NL.join(watch_signals)}\n\n"
         f"---\n\n"
         f"## 🟢 Market Pattern Health — Top 15\n\n"
-        f"_Combined NSE · US · EU — ranked by news momentum + price trend. ⚡ = news-backed today._\n\n"
-        f"| # | 🌍 | Stock | Price | vs Apr'25 | Status |\n"
-        f"|---|---|---|---|---|---|\n"
+        f"_Combined NSE · US · EU — ranked by news momentum today. ⚡ = news-backed._\n\n"
+        f"| # | 🌍 | Stock | Price | Status |\n"
+        f"|---|---|---|---|---|\n"
         f"{NL.join(health_rows)}\n\n"
         f"---\n\n"
         f"## 📊 Macro Snapshot\n\n"
-        f"| Index / Asset | Price | vs Apr'25 | |\n"
-        f"|---|---|---|---|\n"
+        f"| Index / Asset | Price |\n"
+        f"|---|---|\n"
         f"{macro_rows}\n\n"
         f"---\n\n"
         f"## 🔴 Today's Key Themes\n\n"
